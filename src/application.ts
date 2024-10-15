@@ -9,8 +9,11 @@ import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
 import {MySequence} from './sequence';
+import {JWTStrategy} from './authentication/jwt.strategy';
 
 export {ApplicationConfig};
+import { AuthenticationComponent } from '@loopback/authentication';
+import { registerAuthenticationStrategy } from '@loopback/authentication'; 
 
 export class ArtsApiApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
@@ -40,5 +43,10 @@ export class ArtsApiApplication extends BootMixin(
         nested: true,
       },
     };
+
+    // add jwt
+    this.bind('jwt.secret').to('jwt_secret'); 
+    this.component(AuthenticationComponent);
+    registerAuthenticationStrategy(this, JWTStrategy);
   }
 }
