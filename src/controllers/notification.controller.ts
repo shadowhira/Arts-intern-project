@@ -16,6 +16,7 @@ import {
   del,
   requestBody,
   response,
+  HttpErrors,
 } from '@loopback/rest';
 import {Notification} from '../models';
 import {NotificationRepository} from '../repositories';
@@ -23,7 +24,7 @@ import {NotificationRepository} from '../repositories';
 export class NotificationController {
   constructor(
     @repository(NotificationRepository)
-    public notificationRepository : NotificationRepository,
+    public notificationRepository: NotificationRepository,
   ) {}
 
   @post('/notifications')
@@ -44,7 +45,11 @@ export class NotificationController {
     })
     notification: Omit<Notification, 'id'>,
   ): Promise<Notification> {
-    return this.notificationRepository.create(notification);
+    try {
+      return this.notificationRepository.create(notification);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Tạo mới thông báo thất bại.');
+    }
   }
 
   @get('/notifications/count')
@@ -55,7 +60,11 @@ export class NotificationController {
   async count(
     @param.where(Notification) where?: Where<Notification>,
   ): Promise<Count> {
-    return this.notificationRepository.count(where);
+    try {
+      return this.notificationRepository.count(where);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Lấy số lượng thông báo thất bại.');
+    }
   }
 
   @get('/notifications')
@@ -73,7 +82,11 @@ export class NotificationController {
   async find(
     @param.filter(Notification) filter?: Filter<Notification>,
   ): Promise<Notification[]> {
-    return this.notificationRepository.find(filter);
+    try {
+      return this.notificationRepository.find(filter);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Lấy thông báo thất bại.');
+    }
   }
 
   @patch('/notifications')
@@ -92,7 +105,11 @@ export class NotificationController {
     notification: Notification,
     @param.where(Notification) where?: Where<Notification>,
   ): Promise<Count> {
-    return this.notificationRepository.updateAll(notification, where);
+    try {
+      return this.notificationRepository.updateAll(notification, where);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Cập nhật thông báo thất bại.');
+    }
   }
 
   @get('/notifications/{id}')
@@ -106,9 +123,14 @@ export class NotificationController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Notification, {exclude: 'where'}) filter?: FilterExcludingWhere<Notification>
+    @param.filter(Notification, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Notification>,
   ): Promise<Notification> {
-    return this.notificationRepository.findById(id, filter);
+    try {
+      return this.notificationRepository.findById(id, filter);
+    } catch (error) {
+      throw new HttpErrors.NotFound('Không tìm thấy thông báo.');
+    }
   }
 
   @patch('/notifications/{id}')
@@ -126,7 +148,11 @@ export class NotificationController {
     })
     notification: Notification,
   ): Promise<void> {
-    await this.notificationRepository.updateById(id, notification);
+    try {
+      await this.notificationRepository.updateById(id, notification);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Cập nhật thông báo thất bại.');
+    }
   }
 
   @put('/notifications/{id}')
@@ -137,7 +163,11 @@ export class NotificationController {
     @param.path.string('id') id: string,
     @requestBody() notification: Notification,
   ): Promise<void> {
-    await this.notificationRepository.replaceById(id, notification);
+    try {
+      await this.notificationRepository.replaceById(id, notification);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Cập nhật thông báo thất bại.');
+    }
   }
 
   @del('/notifications/{id}')
@@ -145,6 +175,10 @@ export class NotificationController {
     description: 'Notification DELETE success',
   })
   async deleteById(@param.path.string('id') id: string): Promise<void> {
-    await this.notificationRepository.deleteById(id);
+    try {
+      await this.notificationRepository.deleteById(id);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Xóa thông báo thất bại.');
+    }
   }
 }

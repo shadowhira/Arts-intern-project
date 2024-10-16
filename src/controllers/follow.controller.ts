@@ -16,6 +16,7 @@ import {
   del,
   requestBody,
   response,
+  HttpErrors,
 } from '@loopback/rest';
 import {Follow} from '../models';
 import {FollowRepository} from '../repositories';
@@ -23,7 +24,7 @@ import {FollowRepository} from '../repositories';
 export class FollowController {
   constructor(
     @repository(FollowRepository)
-    public followRepository : FollowRepository,
+    public followRepository: FollowRepository,
   ) {}
 
   @post('/follows')
@@ -44,7 +45,11 @@ export class FollowController {
     })
     follow: Omit<Follow, 'id'>,
   ): Promise<Follow> {
-    return this.followRepository.create(follow);
+    try {
+      return this.followRepository.create(follow);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Tạo mới follow thất bại.');
+    }
   }
 
   @get('/follows/count')
@@ -52,10 +57,12 @@ export class FollowController {
     description: 'Follow model count',
     content: {'application/json': {schema: CountSchema}},
   })
-  async count(
-    @param.where(Follow) where?: Where<Follow>,
-  ): Promise<Count> {
-    return this.followRepository.count(where);
+  async count(@param.where(Follow) where?: Where<Follow>): Promise<Count> {
+    try {
+      return this.followRepository.count(where);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Đếm follow thất bại.');
+    }
   }
 
   @get('/follows')
@@ -70,10 +77,12 @@ export class FollowController {
       },
     },
   })
-  async find(
-    @param.filter(Follow) filter?: Filter<Follow>,
-  ): Promise<Follow[]> {
-    return this.followRepository.find(filter);
+  async find(@param.filter(Follow) filter?: Filter<Follow>): Promise<Follow[]> {
+    try {
+      return this.followRepository.find(filter);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Lấy follow thất bại.');
+    }
   }
 
   @patch('/follows')
@@ -92,7 +101,11 @@ export class FollowController {
     follow: Follow,
     @param.where(Follow) where?: Where<Follow>,
   ): Promise<Count> {
-    return this.followRepository.updateAll(follow, where);
+    try {
+      return this.followRepository.updateAll(follow, where);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Cập nhật follow thất bại.');
+    }
   }
 
   @get('/follows/{id}')
@@ -106,9 +119,14 @@ export class FollowController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Follow, {exclude: 'where'}) filter?: FilterExcludingWhere<Follow>
+    @param.filter(Follow, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Follow>,
   ): Promise<Follow> {
-    return this.followRepository.findById(id, filter);
+    try {
+      return this.followRepository.findById(id, filter);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Lấy follow thất bại.');
+    }
   }
 
   @patch('/follows/{id}')
@@ -126,7 +144,11 @@ export class FollowController {
     })
     follow: Follow,
   ): Promise<void> {
-    await this.followRepository.updateById(id, follow);
+    try {
+      await this.followRepository.updateById(id, follow);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Cập nhật follow thất bại.');
+    }
   }
 
   @put('/follows/{id}')
@@ -137,7 +159,11 @@ export class FollowController {
     @param.path.string('id') id: string,
     @requestBody() follow: Follow,
   ): Promise<void> {
-    await this.followRepository.replaceById(id, follow);
+    try {
+      await this.followRepository.replaceById(id, follow);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Cập nhật follow thất bại.');
+    }
   }
 
   @del('/follows/{id}')
@@ -145,6 +171,10 @@ export class FollowController {
     description: 'Follow DELETE success',
   })
   async deleteById(@param.path.string('id') id: string): Promise<void> {
-    await this.followRepository.deleteById(id);
+    try {
+      await this.followRepository.deleteById(id);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Xóa follow thất bại.');
+    }
   }
 }

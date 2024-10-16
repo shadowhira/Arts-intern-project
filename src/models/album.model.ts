@@ -3,6 +3,7 @@ import {Entity, model, property} from '@loopback/repository';
 @model({settings: {strict: false}})
 export class Album extends Entity {
   @property({
+    // decorator validate
     type: 'string',
     id: true,
     generated: true,
@@ -12,6 +13,10 @@ export class Album extends Entity {
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 50,
+    },
   })
   title: string;
 

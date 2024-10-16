@@ -12,14 +12,18 @@ import {MySequence} from './sequence';
 import {JWTStrategy} from './authentication/jwt.strategy';
 
 export {ApplicationConfig};
-import { AuthenticationComponent } from '@loopback/authentication';
-import { registerAuthenticationStrategy } from '@loopback/authentication'; 
+import {AuthenticationComponent} from '@loopback/authentication';
+import {registerAuthenticationStrategy} from '@loopback/authentication';
+import {errorHandlerMiddleware} from './middleware/error-handler.middleware';
 
 export class ArtsApiApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
 ) {
   constructor(options: ApplicationConfig = {}) {
     super(options);
+
+    // middleware
+    this.middleware(errorHandlerMiddleware);
 
     // Set up the custom sequence
     this.sequence(MySequence);
@@ -45,7 +49,7 @@ export class ArtsApiApplication extends BootMixin(
     };
 
     // add jwt
-    this.bind('jwt.secret').to('jwt_secret'); 
+    this.bind('jwt.secret').to('jwt_secret');
     this.component(AuthenticationComponent);
     registerAuthenticationStrategy(this, JWTStrategy);
   }

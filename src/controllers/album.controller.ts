@@ -16,6 +16,7 @@ import {
   del,
   requestBody,
   response,
+  HttpErrors,
 } from '@loopback/rest';
 import {Album} from '../models';
 import {AlbumRepository} from '../repositories';
@@ -23,7 +24,7 @@ import {AlbumRepository} from '../repositories';
 export class AlbumController {
   constructor(
     @repository(AlbumRepository)
-    public albumRepository : AlbumRepository,
+    public albumRepository: AlbumRepository,
   ) {}
 
   @post('/albums')
@@ -44,7 +45,11 @@ export class AlbumController {
     })
     album: Omit<Album, 'id'>,
   ): Promise<Album> {
-    return this.albumRepository.create(album);
+    try {
+      return this.albumRepository.create(album);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Tạo mới album thất bại,');
+    }
   }
 
   @get('/albums/count')
@@ -52,10 +57,12 @@ export class AlbumController {
     description: 'Album model count',
     content: {'application/json': {schema: CountSchema}},
   })
-  async count(
-    @param.where(Album) where?: Where<Album>,
-  ): Promise<Count> {
-    return this.albumRepository.count(where);
+  async count(@param.where(Album) where?: Where<Album>): Promise<Count> {
+    try {
+      return this.albumRepository.count(where);
+    } catch (error) {
+      throw new HttpErrors.InternalServerError('Lỗi khi đếm số album.');
+    }
   }
 
   @get('/albums')
@@ -70,10 +77,14 @@ export class AlbumController {
       },
     },
   })
-  async find(
-    @param.filter(Album) filter?: Filter<Album>,
-  ): Promise<Album[]> {
-    return this.albumRepository.find(filter);
+  async find(@param.filter(Album) filter?: Filter<Album>): Promise<Album[]> {
+    try {
+      return this.albumRepository.find(filter);
+    } catch (error) {
+      throw new HttpErrors.InternalServerError(
+        'Lỗi khi truy vấn danh sách album.',
+      );
+    }
   }
 
   @patch('/albums')
@@ -92,7 +103,11 @@ export class AlbumController {
     album: Album,
     @param.where(Album) where?: Where<Album>,
   ): Promise<Count> {
-    return this.albumRepository.updateAll(album, where);
+    try {
+      return this.albumRepository.updateAll(album, where);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Dữ liệu cập nhật không hợp lệ.');
+    }
   }
 
   @get('/albums/{id}')
@@ -106,9 +121,21 @@ export class AlbumController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Album, {exclude: 'where'}) filter?: FilterExcludingWhere<Album>
+    @param.filter(Album, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Album>,
   ): Promise<Album> {
-    return this.albumRepository.findById(id, filter);
+    try {
+      const album = await this.albumRepository.findById(id, filter);
+      if (!album) {
+        throw new HttpErrors.NotFound('Không tìm thấy album.');
+      }
+      return album;
+    } catch (error) {
+      if (error instanceof HttpErrors.NotFound) {
+        throw error;
+      }
+      throw new HttpErrors.InternalServerError('Lỗi khi tìm kiếm người dùng.');
+    }
   }
 
   @patch('/albums/{id}')
@@ -126,7 +153,11 @@ export class AlbumController {
     })
     album: Album,
   ): Promise<void> {
-    await this.albumRepository.updateById(id, album);
+    try {
+      await this.albumRepository.updateById(id, album);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Cập nhật album thất bại.');
+    }
   }
 
   @put('/albums/{id}')
@@ -145,6 +176,10 @@ export class AlbumController {
     description: 'Album DELETE success',
   })
   async deleteById(@param.path.string('id') id: string): Promise<void> {
-    await this.albumRepository.deleteById(id);
+    try {
+      await this.albumRepository.deleteById(id);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Xóa album thất bại.');
+    }
   }
 }

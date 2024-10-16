@@ -12,12 +12,19 @@ export class Image extends Entity {
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 50,
+    },
   })
   title: string;
 
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {
+      format: 'uri',
+    },
   })
   url: string;
 

@@ -13,6 +13,12 @@ export class Notification extends Entity {
     type: 'string',
     required: true,
   })
+  message: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
   senderId: string;
 
   @property({

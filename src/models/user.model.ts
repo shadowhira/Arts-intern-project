@@ -12,18 +12,21 @@ export class User extends Entity {
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {minLength: 3},
   })
   username: string;
 
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {minLength: 6},
   })
   password: string;
 
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {format: 'email'},
   })
   email: string;
 
