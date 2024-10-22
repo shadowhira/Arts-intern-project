@@ -1,12 +1,8 @@
-// src/app/about/page.tsx
-import React from 'react';
+import Login from "../components/Login";
+import React from 'react'
 
-const AboutPage: React.FC = () => {
+export default function page() {
   return (
-    <div className="text-center">
-        Login
-    </div>
-  );
-};
-
-export default AboutPage;
+    <Login />
+  )
+}

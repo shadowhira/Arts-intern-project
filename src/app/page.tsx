@@ -1,7 +1,9 @@
 import Gallery from "./components/Gallery";
 
-export default function Home() {
+export default async function Home() {
   return (
-    <Gallery />
+    <>
+      <Gallery />
+    </>
   );
 }
