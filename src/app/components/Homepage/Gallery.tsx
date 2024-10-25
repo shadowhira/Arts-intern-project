@@ -5,6 +5,7 @@ import React from "react";
 import addBlurredDataUrls from "@/lib/getBase64";
 import getPrevNextPages from "@/lib/getPrevNextPages";
 import Footer from "../Footer";
+import Filter from "./Filter";
 
 type Props = {
   topic?: string | undefined;
@@ -30,6 +31,7 @@ export default async function Gallery({ topic = "curated", page }: Props) {
 
   return (
     <>
+      <Filter />
       <section className="px-1 my-3 grid grid-cols-gallery auto-rows-[10px]">
         {photosWithBlur.map((photo) => (
           <ImgContainer key={photo.id} photo={photo} />
