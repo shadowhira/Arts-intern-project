@@ -4,7 +4,7 @@ import ImgContainer from "./ImgContainer";
 import React from "react";
 import addBlurredDataUrls from "@/lib/getBase64";
 import getPrevNextPages from "@/lib/getPrevNextPages";
-import Footer from "./Footer";
+import Footer from "../Footer";
 
 type Props = {
   topic?: string | undefined;

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Search from "./Search";
+import Search from "./NavBar/Search";
 import React from "react";
 
 export default function NavBar() {
