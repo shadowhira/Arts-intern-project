@@ -9,9 +9,9 @@ import {
   SequenceHandler,
 } from '@loopback/rest';
 import {inject} from '@loopback/core';
+import {MiddlewareSequence} from '@loopback/rest';
 
 const SequenceActions = RestBindings.SequenceActions;
-
 export class MySequence implements SequenceHandler {
   constructor(
     @inject(SequenceActions.FIND_ROUTE) protected findRoute: FindRoute,
@@ -29,7 +29,6 @@ export class MySequence implements SequenceHandler {
       const result = await this.invoke(route, args);
       this.send(response, result);
     } catch (err) {
-      // Log lỗi 
       const statusCode = err.statusCode || 500;
       const message = err.message || 'Internal Server Error';
       const errorDetails = err.details ? JSON.stringify(err.details) : '';
@@ -39,7 +38,6 @@ export class MySequence implements SequenceHandler {
         `Error: ${message}\nStatusCode: ${statusCode}\nDetails: ${errorDetails}\nStack: ${stack}`,
       );
 
-      // Xử lý lỗi bằng reject để trả về phản hồi cho client
       this.reject(context, err);
     }
   }

@@ -21,6 +21,7 @@ import {
 import {User} from '../models';
 import {UserRepository} from '../repositories';
 import {authenticate} from '@loopback/authentication';
+import {intercept} from '@loopback/core';
 
 export class UserController {
   constructor(
@@ -29,10 +30,18 @@ export class UserController {
   ) {}
 
   @authenticate('jwt')
+  @intercept('admin')
   @post('/users')
   @response(200, {
     description: 'User model instance',
-    content: {'application/json': {schema: getModelSchemaRef(User)}},
+    content: {
+      'application/json': {
+        schema: {
+          // type: 'array',
+          items: getModelSchemaRef(User),
+        },
+      },
+    },
   })
   async create(
     @requestBody({
@@ -50,9 +59,10 @@ export class UserController {
     const existingUser = await this.userRepository.findOne({
       where: {email: user.email},
     });
+    console.log('user: ', user);
     if (existingUser) {
       throw new HttpErrors.Conflict(
-        'Email đã được sử dụng bởi một người dùng khác.',
+        'Email đã được sử dụng bởi một người khác.',
       );
     }
 
@@ -64,6 +74,8 @@ export class UserController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @get('/users/count')
   @response(200, {
     description: 'User model count',
@@ -79,6 +91,8 @@ export class UserController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @get('/users')
   @response(200, {
     description: 'Array of User model instances',
@@ -101,6 +115,8 @@ export class UserController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @patch('/users')
   @response(200, {
     description: 'User PATCH success count',
@@ -124,6 +140,8 @@ export class UserController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('user')
   @get('/users/{id}')
   @response(200, {
     description: 'User model instance',
@@ -153,6 +171,8 @@ export class UserController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('user')
   @patch('/users/{id}')
   @response(204, {
     description: 'User PATCH success',
@@ -182,6 +202,8 @@ export class UserController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @put('/users/{id}')
   @response(204, {
     description: 'User PUT success',
@@ -204,6 +226,8 @@ export class UserController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @del('/users/{id}')
   @response(204, {
     description: 'User DELETE success',

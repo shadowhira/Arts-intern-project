@@ -1,4 +1,7 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, model, property, hasMany} from '@loopback/repository';
+import {Album} from './album.model';
+import {Notification} from './notification.model';
+import {Follow} from './follow.model';
 
 @model({settings: {strict: false}})
 export class User extends Entity {
@@ -31,11 +34,28 @@ export class User extends Entity {
   email: string;
 
   @property({
-    type: 'string',
-    default: 'View',
+    type: 'array',
+    itemType: 'string',
+    default: ['user'],
   })
-  role?: string;
+  role?: string[];
 
+  @hasMany(() => Album)
+  albums: Album[];
+
+  @hasMany(() => Notification)
+  notifications: Notification[];
+
+  @hasMany(() => User, {through: {model: () => Follow, keyFrom: 'followerId', keyTo: 'followingId'}})
+  followings: User[];
+
+  @hasMany(() => User, {through: {model: () => Follow, keyFrom: 'followingId', keyTo: 'followerId'}})
+  followers: User[];
+  // @hasMany(() => User, {through: {model: () => Follow, keyFrom: 'followerId', keyTo: 'followingId'}})
+  // followings: User[];
+
+  // @hasMany(() => User, {through: {model: () => Follow, keyFrom: 'followingId', keyTo: 'followerId'}})
+  // followers: User[];
   // Define well-known properties here
 
   // Indexer property to allow additional data

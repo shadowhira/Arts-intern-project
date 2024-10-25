@@ -20,6 +20,8 @@ import {
 } from '@loopback/rest';
 import {Image} from '../models';
 import {ImageRepository} from '../repositories';
+import {intercept} from '@loopback/core';
+import {authenticate} from '@loopback/authentication';
 
 export class ImageController {
   constructor(
@@ -27,6 +29,8 @@ export class ImageController {
     public imageRepository: ImageRepository,
   ) {}
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @post('/images')
   @response(200, {
     description: 'Image model instance',
@@ -85,6 +89,8 @@ export class ImageController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @patch('/images')
   @response(200, {
     description: 'Image PATCH success count',
@@ -108,6 +114,8 @@ export class ImageController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @get('/images/{id}')
   @response(200, {
     description: 'Image model instance',
@@ -133,6 +141,8 @@ export class ImageController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @patch('/images/{id}')
   @response(204, {
     description: 'Image PATCH success',
@@ -155,6 +165,8 @@ export class ImageController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @put('/images/{id}')
   @response(204, {
     description: 'Image PUT success',
@@ -170,6 +182,8 @@ export class ImageController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @del('/images/{id}')
   @response(204, {
     description: 'Image DELETE success',

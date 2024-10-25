@@ -20,13 +20,18 @@ import {
 } from '@loopback/rest';
 import {Follow} from '../models';
 import {FollowRepository} from '../repositories';
+import {intercept} from '@loopback/core';
+import {authenticate} from '@loopback/authentication';
 
 export class FollowController {
+  userRepository: any;
   constructor(
     @repository(FollowRepository)
     public followRepository: FollowRepository,
   ) {}
 
+  // @authenticate('jwt')
+  // @intercept('admin')
   @post('/follows')
   @response(200, {
     description: 'Follow model instance',
@@ -46,12 +51,30 @@ export class FollowController {
     follow: Omit<Follow, 'id'>,
   ): Promise<Follow> {
     try {
+      // Kiểm tra A không thể tự theo dõi chính mình
+      if (follow.followerId === follow.followingId) {
+        throw new HttpErrors.BadRequest('Đang follow chính mình.');
+      }
+
+      // Kiểm tra A đã theo dõi B chưa
+      const existingFollow = await this.userRepository.follows(follow.followerId).findOne({
+        where: {
+          followerId: follow.followerId,
+          followingId: follow.followingId,
+        },
+      });
+
+      if (existingFollow) {
+        throw new HttpErrors.Conflict('Đã follow user này rồi.');
+      }
+
       return this.followRepository.create(follow);
     } catch (error) {
-      throw new HttpErrors.BadRequest('Tạo mới follow thất bại.');
+      throw new HttpErrors.BadRequest(error.message);
     }
   }
 
+  @authenticate('jwt')
   @get('/follows/count')
   @response(200, {
     description: 'Follow model count',
@@ -65,6 +88,7 @@ export class FollowController {
     }
   }
 
+  @authenticate('jwt')
   @get('/follows')
   @response(200, {
     description: 'Array of Follow model instances',
@@ -85,6 +109,8 @@ export class FollowController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @patch('/follows')
   @response(200, {
     description: 'Follow PATCH success count',
@@ -108,6 +134,8 @@ export class FollowController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @get('/follows/{id}')
   @response(200, {
     description: 'Follow model instance',
@@ -129,6 +157,7 @@ export class FollowController {
     }
   }
 
+  @authenticate('jwt')
   @patch('/follows/{id}')
   @response(204, {
     description: 'Follow PATCH success',
@@ -151,6 +180,8 @@ export class FollowController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @put('/follows/{id}')
   @response(204, {
     description: 'Follow PUT success',
@@ -166,6 +197,8 @@ export class FollowController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @del('/follows/{id}')
   @response(204, {
     description: 'Follow DELETE success',

@@ -20,6 +20,8 @@ import {
 } from '@loopback/rest';
 import {Notification} from '../models';
 import {NotificationRepository} from '../repositories';
+import {intercept} from '@loopback/core';
+import {authenticate} from '@loopback/authentication';
 
 export class NotificationController {
   constructor(
@@ -27,6 +29,8 @@ export class NotificationController {
     public notificationRepository: NotificationRepository,
   ) {}
 
+  @authenticate('jwt')
+  @intercept('admin')
   @post('/notifications')
   @response(200, {
     description: 'Notification model instance',
@@ -52,6 +56,8 @@ export class NotificationController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @get('/notifications/count')
   @response(200, {
     description: 'Notification model count',
@@ -67,6 +73,7 @@ export class NotificationController {
     }
   }
 
+  @authenticate('jwt')
   @get('/notifications')
   @response(200, {
     description: 'Array of Notification model instances',
@@ -89,6 +96,8 @@ export class NotificationController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @patch('/notifications')
   @response(200, {
     description: 'Notification PATCH success count',
@@ -112,6 +121,7 @@ export class NotificationController {
     }
   }
 
+  @authenticate('jwt')
   @get('/notifications/{id}')
   @response(200, {
     description: 'Notification model instance',
@@ -133,6 +143,8 @@ export class NotificationController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @patch('/notifications/{id}')
   @response(204, {
     description: 'Notification PATCH success',
@@ -155,6 +167,8 @@ export class NotificationController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @put('/notifications/{id}')
   @response(204, {
     description: 'Notification PUT success',
@@ -170,6 +184,8 @@ export class NotificationController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @del('/notifications/{id}')
   @response(204, {
     description: 'Notification DELETE success',

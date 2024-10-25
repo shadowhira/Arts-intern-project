@@ -20,6 +20,9 @@ import {
 } from '@loopback/rest';
 import {Album} from '../models';
 import {AlbumRepository} from '../repositories';
+import {FollowRepository} from '../repositories';
+import {intercept} from '@loopback/core';
+import {authenticate} from '@loopback/authentication';
 
 export class AlbumController {
   constructor(
@@ -27,6 +30,8 @@ export class AlbumController {
     public albumRepository: AlbumRepository,
   ) {}
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @post('/albums')
   @response(200, {
     description: 'Album model instance',
@@ -52,6 +57,8 @@ export class AlbumController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @get('/albums/count')
   @response(200, {
     description: 'Album model count',
@@ -65,6 +72,8 @@ export class AlbumController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @get('/albums')
   @response(200, {
     description: 'Array of Album model instances',
@@ -87,6 +96,8 @@ export class AlbumController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @patch('/albums')
   @response(200, {
     description: 'Album PATCH success count',
@@ -110,6 +121,8 @@ export class AlbumController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @get('/albums/{id}')
   @response(200, {
     description: 'Album model instance',
@@ -138,6 +151,8 @@ export class AlbumController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @patch('/albums/{id}')
   @response(204, {
     description: 'Album PATCH success',
@@ -160,6 +175,8 @@ export class AlbumController {
     }
   }
 
+  @authenticate('jwt')
+  @intercept('admin', 'user')
   @put('/albums/{id}')
   @response(204, {
     description: 'Album PUT success',
@@ -171,6 +188,8 @@ export class AlbumController {
     await this.albumRepository.replaceById(id, album);
   }
 
+  @authenticate('jwt')
+  @intercept('admin')
   @del('/albums/{id}')
   @response(204, {
     description: 'Album DELETE success',

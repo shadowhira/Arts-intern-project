@@ -7,6 +7,8 @@ import {authenticate} from '@loopback/authentication';
 import {UserProfile, SecurityBindings, securityId} from '@loopback/security';
 import {inject} from '@loopback/core';
 
+const SECRET_KEY = 'jwt_secret';
+
 export class AuthController {
   constructor(
     @repository(UserRepository)
@@ -40,26 +42,35 @@ export class AuthController {
     }
     const token = jwt.sign(
       {id: user.id, username: user.username, role: user.role},
-      'jwt_secret',
+      SECRET_KEY,
       {expiresIn: '1h'},
     );
     return {token};
   }
 
-  @post('/signin')
+  @post('/signup')
   async signup(
     @requestBody() newUser: {username: string; password: string; email: string},
-  ): Promise<{success: boolean}> {
+  ): Promise<{success: boolean, message: string}> {
+    // Kiểm tra xem email đã tồn tại chưa
+    const existingUserByEmail = await this.userRepository.findOne({
+      where: {email: newUser.email},
+    });
+
+    if (existingUserByEmail) {
+      return {success: false, message: 'Email đã tồn tại trong hệ thống.'};
+    }
+
     const passwordHash = await bcrypt.hash(newUser.password, 10);
     try {
       await this.userRepository.create({
         ...newUser,
         password: passwordHash,
-        role: 'View', 
+        role: ['user'],
       });
-      return {success: true};
+      return {success: true, message: 'User created successfully'};
     } catch (error) {
-      return {success: false};
+      return {success: false, message: 'Failed to create user'};
     }
   }
 
@@ -70,7 +81,7 @@ export class AuthController {
   ): Promise<{token: string}> {
     const token = jwt.sign(
       {id: user[securityId], username: user.name, role: user.roles},
-      'jwt_secret',
+      SECRET_KEY,
       {expiresIn: '1h'},
     );
     return {token};

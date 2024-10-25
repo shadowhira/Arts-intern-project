@@ -1,9 +1,12 @@
 import {ApplicationConfig, ArtsApiApplication} from './application';
+import {extractRoleFromToken} from './middlewares/authorization.middleware';
+import {MiddlewareSequence} from '@loopback/rest';
 
 export * from './application';
 
 export async function main(options: ApplicationConfig = {}) {
   const app = new ArtsApiApplication(options);
+
   await app.boot();
   await app.start();
 
@@ -18,7 +21,7 @@ if (require.main === module) {
   // Run the application
   const config = {
     rest: {
-      port: +(process.env.PORT ?? 3000),
+      port: +(process.env.PORT ?? 8000),
       host: process.env.HOST || '127.0.0.1',
       // The `gracePeriodForClose` provides a graceful close for http/https
       // servers with keep-alive clients. The default value is `Infinity`

@@ -14,7 +14,11 @@ import {JWTStrategy} from './authentication/jwt.strategy';
 export {ApplicationConfig};
 import {AuthenticationComponent} from '@loopback/authentication';
 import {registerAuthenticationStrategy} from '@loopback/authentication';
-import {errorHandlerMiddleware} from './middleware/error-handler.middleware';
+import {errorHandlerMiddleware} from './middlewares/error-handler.middleware';
+import {AuthorizationComponent} from '@loopback/authorization';
+import {MyAuthorizationProvider} from './authorization/authorization.provider';
+//import {authorize} from './middleware/authorization.middleware';
+import {CheckAuthorInterceptor, CheckAdminInterceptor, CheckUserInterceptor} from './interceptors/authorization.interceptor';
 
 export class ArtsApiApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
@@ -22,11 +26,18 @@ export class ArtsApiApplication extends BootMixin(
   constructor(options: ApplicationConfig = {}) {
     super(options);
 
+
     // middleware
     this.middleware(errorHandlerMiddleware);
-
+    
     // Set up the custom sequence
     this.sequence(MySequence);
+
+    // Đăng ký RoleInterceptor
+    // this.interceptor(RoleInterceptor);
+    this.bind('admin').toProvider(CheckAdminInterceptor);
+    this.bind('user').toProvider(CheckUserInterceptor);
+    this.bind('author').toProvider(CheckAuthorInterceptor);
 
     // Set up default home page
     this.static('/', path.join(__dirname, '../public'));
@@ -48,9 +59,15 @@ export class ArtsApiApplication extends BootMixin(
       },
     };
 
-    // add jwt
+    // add jwt, auth
     this.bind('jwt.secret').to('jwt_secret');
     this.component(AuthenticationComponent);
+    this.component(AuthorizationComponent);
     registerAuthenticationStrategy(this, JWTStrategy);
+
+    // Bind Authorization Provider
+    this.bind('authorizationProviders.my-provider').toProvider(
+      MyAuthorizationProvider,
+    );
   }
 }
