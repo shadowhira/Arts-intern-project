@@ -18,7 +18,11 @@ import {errorHandlerMiddleware} from './middlewares/error-handler.middleware';
 import {AuthorizationComponent} from '@loopback/authorization';
 import {MyAuthorizationProvider} from './authorization/authorization.provider';
 //import {authorize} from './middleware/authorization.middleware';
-import {CheckAuthorInterceptor, CheckAdminInterceptor, CheckUserInterceptor} from './interceptors/authorization.interceptor';
+import {
+  CheckAuthorInterceptor,
+  CheckAdminInterceptor,
+  CheckUserInterceptor,
+} from './interceptors/authorization.interceptor';
 
 export class ArtsApiApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
@@ -26,10 +30,17 @@ export class ArtsApiApplication extends BootMixin(
   constructor(options: ApplicationConfig = {}) {
     super(options);
 
+    // CORS
+    this.bind('rest.cors.options').to({
+      origin: '*', 
+      methods: 'GET,POST,PUT,DELETE',
+      allowedHeaders: 'Content-Type,Authorization',
+      credentials: true,
+    });
 
     // middleware
     this.middleware(errorHandlerMiddleware);
-    
+
     // Set up the custom sequence
     this.sequence(MySequence);
 

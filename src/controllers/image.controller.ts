@@ -23,6 +23,10 @@ import {ImageRepository} from '../repositories';
 import {intercept, inject} from '@loopback/core';
 import {authenticate} from '@loopback/authentication';
 import {NotificationService} from '../services/notification.service';
+import multer from 'multer';
+import cloudinary from '../config/cloudinary.config';
+
+const upload = multer({dest: 'uploads/'});
 
 export class ImageController {
   constructor(
@@ -41,21 +45,49 @@ export class ImageController {
   async create(
     @requestBody({
       content: {
-        'application/json': {
-          schema: getModelSchemaRef(Image, {
-            title: 'NewImage',
-            exclude: ['id'],
-          }),
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties: {
+              file: {type: 'string', format: 'binary'},
+              title: {type: 'string'},
+              star: {type: 'number'},
+              albumId: {type: 'string'},
+              userId: {type: 'string'},
+            },
+          },
         },
       },
     })
-    image: Omit<Image, 'id'>,
+    requestData: {
+      file: Express.Multer.File;
+      title: string;
+      star: number;
+      albumId: string;
+      userId: string;
+    },
   ): Promise<Image> {
-    try {
-      // Tạo album
-      const newImage = await this.imageRepository.create(image);
+    const {file, title, star, userId} = requestData;
 
-      // Gọi notification service sau khi album được tạo thành công
+    if (!file) {
+      throw new HttpErrors.BadRequest('No file uploaded');
+    }
+
+    try {
+      // Upload ảnh lên Cloudinary
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: 'uploads',
+      });
+
+      // Tạo đối tượng ảnh với URL từ Cloudinary
+      const newImage = await this.imageRepository.create({
+        title,
+        url: result.secure_url,
+        star,
+        userId,
+      });
+
+      // Gửi notification cho những người theo dõi
       await this.notificationService.notifyFollowersCreateNew(newImage.userId, 'image');
 
       return newImage;
