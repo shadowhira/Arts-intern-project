@@ -31,7 +31,7 @@ export class Notification extends Entity {
     type: 'string',
     required: true,
   })
-  actionType: 'album' | 'image';
+  actionType: 'album' | 'image' | 'follow';
 
   @belongsTo(() => User)
   userId: string;

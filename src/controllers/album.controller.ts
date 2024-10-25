@@ -21,17 +21,18 @@ import {
 import {Album} from '../models';
 import {AlbumRepository} from '../repositories';
 import {FollowRepository} from '../repositories';
-import {intercept} from '@loopback/core';
+import {inject, intercept} from '@loopback/core';
 import {authenticate} from '@loopback/authentication';
-
+import {NotificationService} from '../services/notification.service';
 export class AlbumController {
   constructor(
-    @repository(AlbumRepository)
-    public albumRepository: AlbumRepository,
+    @repository(AlbumRepository) public albumRepository: AlbumRepository,
+    @inject('services.NotificationService')
+    public notificationService: NotificationService, // Inject NotificationService
   ) {}
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('user')
   @post('/albums')
   @response(200, {
     description: 'Album model instance',
@@ -51,14 +52,28 @@ export class AlbumController {
     album: Omit<Album, 'id'>,
   ): Promise<Album> {
     try {
-      return this.albumRepository.create(album);
+      // Tạo album
+      const newAlbum = await this.albumRepository.create(album);
+
+      // check exist album title
+      const albumTitle = await this.albumRepository.findOne({
+        where: {title: newAlbum.title},
+      });
+      if (albumTitle) {
+        throw new HttpErrors.BadRequest('Tên album đã tồn tại.');
+      }
+
+      // Gọi notification service sau khi album được tạo thành công
+      await this.notificationService.notifyFollowersCreateNew(newAlbum.userId, 'album');
+
+      return newAlbum;
     } catch (error) {
-      throw new HttpErrors.BadRequest('Tạo mới album thất bại,');
+      throw new HttpErrors.BadRequest(error.message);
     }
   }
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('user')
   @get('/albums/count')
   @response(200, {
     description: 'Album model count',
@@ -122,7 +137,7 @@ export class AlbumController {
   }
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('user')
   @get('/albums/{id}')
   @response(200, {
     description: 'Album model instance',
@@ -152,7 +167,7 @@ export class AlbumController {
   }
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('user')
   @patch('/albums/{id}')
   @response(204, {
     description: 'Album PATCH success',
@@ -176,7 +191,7 @@ export class AlbumController {
   }
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('user')
   @put('/albums/{id}')
   @response(204, {
     description: 'Album PUT success',

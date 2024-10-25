@@ -1,5 +1,6 @@
 import {Entity, model, property, belongsTo} from '@loopback/repository';
 import {Album} from './album.model';
+import {User} from './user.model';
 
 @model({settings: {strict: false}})
 export class Image extends Entity {
@@ -34,15 +35,12 @@ export class Image extends Entity {
     required: true,
   })
   star: number;
-
-  @property({
-    type: 'string',
-    required: true,
-  })
-  userId: string;
-
+  
   @belongsTo(() => Album)
   albumId: string;
+
+  @belongsTo(() => User)
+  userId: string;
   // Define well-known properties here
 
   // Indexer property to allow additional data

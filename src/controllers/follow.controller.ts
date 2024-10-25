@@ -1,3 +1,5 @@
+import {authenticate} from '@loopback/authentication';
+import {inject, intercept} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -7,27 +9,29 @@ import {
   Where,
 } from '@loopback/repository';
 import {
-  post,
-  param,
+  del,
   get,
   getModelSchemaRef,
+  HttpErrors,
+  param,
   patch,
+  post,
   put,
-  del,
   requestBody,
   response,
-  HttpErrors,
 } from '@loopback/rest';
 import {Follow} from '../models';
-import {FollowRepository} from '../repositories';
-import {intercept} from '@loopback/core';
-import {authenticate} from '@loopback/authentication';
+import {FollowRepository, UserRepository} from '../repositories';
+import {NotificationService} from '../services/notification.service';
 
 export class FollowController {
-  userRepository: any;
   constructor(
     @repository(FollowRepository)
     public followRepository: FollowRepository,
+    @inject('services.NotificationService')
+    public notificationService: NotificationService,
+    @repository(UserRepository)
+    public userRepository: UserRepository,
   ) {}
 
   // @authenticate('jwt')
@@ -57,20 +61,32 @@ export class FollowController {
       }
 
       // Kiểm tra A đã theo dõi B chưa
-      const existingFollow = await this.userRepository.follows(follow.followerId).findOne({
-        where: {
-          followerId: follow.followerId,
-          followingId: follow.followingId,
-        },
-      });
+      const existingFollow = await this.userRepository
+        .followers(follow.followingId)
+        .find({
+          where: {
+            id: follow.followerId,
+          },
+        });
 
-      if (existingFollow) {
+      if (existingFollow.length > 0) {
         throw new HttpErrors.Conflict('Đã follow user này rồi.');
       }
 
-      return this.followRepository.create(follow);
+      // Tạo follow
+      const newFollow = await this.followRepository.create(follow);
+
+      // Gọi notification service sau khi follow được tạo thành công
+      await this.notificationService.notifyNewFollower(
+        newFollow.followerId,
+        newFollow.followingId,
+      );
+
+      return newFollow;
     } catch (error) {
-      throw new HttpErrors.BadRequest(error.message);
+      throw new HttpErrors.BadRequest(
+        'Tạo mới follow thất bại: ' + error.message,
+      );
     }
   }
 
@@ -135,7 +151,7 @@ export class FollowController {
   }
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('user')
   @get('/follows/{id}')
   @response(200, {
     description: 'Follow model instance',

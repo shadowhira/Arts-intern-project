@@ -185,7 +185,7 @@ export class NotificationController {
   }
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('user')
   @del('/notifications/{id}')
   @response(204, {
     description: 'Notification DELETE success',

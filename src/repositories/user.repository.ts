@@ -1,10 +1,11 @@
 import {inject, Getter} from '@loopback/core';
 import {DefaultCrudRepository, repository, HasManyRepositoryFactory, HasManyThroughRepositoryFactory} from '@loopback/repository';
 import {ArtsApiDataSource} from '../datasources';
-import {User, UserRelations, Album, Notification, Follow} from '../models';
+import {User, UserRelations, Album, Notification, Follow, Image} from '../models';
 import {AlbumRepository} from './album.repository';
 import {NotificationRepository} from './notification.repository';
 import {FollowRepository} from './follow.repository';
+import {ImageRepository} from './image.repository';
 
 export class UserRepository extends DefaultCrudRepository<
   User,
@@ -26,10 +27,14 @@ export class UserRepository extends DefaultCrudRepository<
           typeof User.prototype.id
         >;
 
+  public readonly images: HasManyRepositoryFactory<Image, typeof User.prototype.id>;
+
   constructor(
-    @inject('datasources.artsAPI') dataSource: ArtsApiDataSource, @repository.getter('AlbumRepository') protected albumRepositoryGetter: Getter<AlbumRepository>, @repository.getter('NotificationRepository') protected notificationRepositoryGetter: Getter<NotificationRepository>, @repository.getter('FollowRepository') protected followRepositoryGetter: Getter<FollowRepository>, @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
+    @inject('datasources.artsAPI') dataSource: ArtsApiDataSource, @repository.getter('AlbumRepository') protected albumRepositoryGetter: Getter<AlbumRepository>, @repository.getter('NotificationRepository') protected notificationRepositoryGetter: Getter<NotificationRepository>, @repository.getter('FollowRepository') protected followRepositoryGetter: Getter<FollowRepository>, @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>, @repository.getter('ImageRepository') protected imageRepositoryGetter: Getter<ImageRepository>,
   ) {
     super(User, dataSource);
+    this.images = this.createHasManyRepositoryFactoryFor('images', imageRepositoryGetter,);
+    this.registerInclusionResolver('images', this.images.inclusionResolver);
     this.followers = this.createHasManyThroughRepositoryFactoryFor('followers', userRepositoryGetter, followRepositoryGetter,);
     this.registerInclusionResolver('followers', this.followers.inclusionResolver);
     this.followings = this.createHasManyThroughRepositoryFactoryFor('followings', userRepositoryGetter, followRepositoryGetter,);

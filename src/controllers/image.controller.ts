@@ -20,17 +20,19 @@ import {
 } from '@loopback/rest';
 import {Image} from '../models';
 import {ImageRepository} from '../repositories';
-import {intercept} from '@loopback/core';
+import {intercept, inject} from '@loopback/core';
 import {authenticate} from '@loopback/authentication';
+import {NotificationService} from '../services/notification.service';
 
 export class ImageController {
   constructor(
-    @repository(ImageRepository)
-    public imageRepository: ImageRepository,
+    @repository(ImageRepository) public imageRepository: ImageRepository,
+    @inject('services.NotificationService')
+    public notificationService: NotificationService,
   ) {}
 
-  @authenticate('jwt')
-  @intercept('admin', 'user')
+  // @authenticate('jwt')
+  // @intercept('user')
   @post('/images')
   @response(200, {
     description: 'Image model instance',
@@ -50,7 +52,13 @@ export class ImageController {
     image: Omit<Image, 'id'>,
   ): Promise<Image> {
     try {
-      return this.imageRepository.create(image);
+      // Tạo album
+      const newImage = await this.imageRepository.create(image);
+
+      // Gọi notification service sau khi album được tạo thành công
+      await this.notificationService.notifyFollowersCreateNew(newImage.userId, 'image');
+
+      return newImage;
     } catch (error) {
       throw new HttpErrors.BadRequest('Tạo mới ảnh thất bại.');
     }
@@ -90,7 +98,7 @@ export class ImageController {
   }
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('admin')
   @patch('/images')
   @response(200, {
     description: 'Image PATCH success count',
@@ -115,7 +123,7 @@ export class ImageController {
   }
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('user')
   @get('/images/{id}')
   @response(200, {
     description: 'Image model instance',
@@ -142,7 +150,7 @@ export class ImageController {
   }
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('user')
   @patch('/images/{id}')
   @response(204, {
     description: 'Image PATCH success',
@@ -166,7 +174,7 @@ export class ImageController {
   }
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('user')
   @put('/images/{id}')
   @response(204, {
     description: 'Image PUT success',
@@ -183,7 +191,7 @@ export class ImageController {
   }
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('user')
   @del('/images/{id}')
   @response(204, {
     description: 'Image DELETE success',

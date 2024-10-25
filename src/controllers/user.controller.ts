@@ -37,7 +37,6 @@ export class UserController {
     content: {
       'application/json': {
         schema: {
-          // type: 'array',
           items: getModelSchemaRef(User),
         },
       },
@@ -59,7 +58,7 @@ export class UserController {
     const existingUser = await this.userRepository.findOne({
       where: {email: user.email},
     });
-    console.log('user: ', user);
+
     if (existingUser) {
       throw new HttpErrors.Conflict(
         'Email đã được sử dụng bởi một người khác.',
@@ -203,7 +202,7 @@ export class UserController {
   }
 
   @authenticate('jwt')
-  @intercept('admin', 'user')
+  @intercept('admin')
   @put('/users/{id}')
   @response(204, {
     description: 'User PUT success',
@@ -226,8 +225,8 @@ export class UserController {
     }
   }
 
-  @authenticate('jwt')
-  @intercept('admin')
+  // @authenticate('jwt')
+  // @intercept('admin')
   @del('/users/{id}')
   @response(204, {
     description: 'User DELETE success',
@@ -241,7 +240,14 @@ export class UserController {
     }
 
     try {
-      await this.userRepository.deleteById(id);
+      // Xóa tất cả ảnh thuộc về người dùng
+      await this.userRepository.images(id).delete();
+
+      // Xóa tất cả album thuộc về người dùng
+      await this.userRepository.albums(id).delete();
+
+      // Xóa người dùng
+      return await this.userRepository.deleteById(id);
     } catch (error) {
       throw new HttpErrors.InternalServerError('Lỗi khi xóa người dùng.');
     }

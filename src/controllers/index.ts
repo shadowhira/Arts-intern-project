@@ -12,3 +12,5 @@ export * from './user-notification.controller';
 export * from './notification-user.controller';
 // export * from './user-followers.controller';
 export * from './user-followings.controller';
+export * from './user-image.controller';
+export * from './image-user.controller';
