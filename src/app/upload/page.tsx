@@ -15,22 +15,19 @@ export default function UploadPage() {
 
     const formData = new FormData();
     formData.append("title", values.title);
-    formData.append("file", fileList[0].originFileObj as RcFile);
-    formData.append("star", "0"); // Thay đổi theo nhu cầu của bạn
+    formData.append("file", fileList[0].originFileObj as RcFile); // Sửa lỗi ở đây
+    formData.append("star", "0");
     formData.append("albumId", "album1"); // Thay thế bằng albumId thực tế
-    formData.append("userId", "user1"); // Thay thế bằng userId thực tế
-
+    formData.append("userId", "671a0078324b3e492878c6bb"); // Thay thế bằng userId thực tế
     try {
-      const response = await fetch("http://localhost:8000/images", {
+      const response = await fetch("http://127.0.0.1:8000/images", {
         method: "POST",
-        headers: {
-          'Content-Type': 'application/json', // hoặc application/json tùy loại dữ liệu bạn gửi"
-          "Access-Control-Allow-Origin": "*"          
-        },  
         body: formData,
       });
 
       if (!response.ok) {
+        const errorData = await response.json(); // Lấy thông tin lỗi từ server
+        console.error("Error response:", errorData);
         throw new Error("Failed to upload");
       }
 
