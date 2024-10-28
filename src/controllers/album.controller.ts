@@ -24,6 +24,9 @@ import {FollowRepository} from '../repositories';
 import {inject, intercept} from '@loopback/core';
 import {authenticate} from '@loopback/authentication';
 import {NotificationService} from '../services/notification.service';
+import multer from 'multer';
+import {Request, RestBindings} from '@loopback/rest';
+
 export class AlbumController {
   constructor(
     @repository(AlbumRepository) public albumRepository: AlbumRepository,
@@ -31,45 +34,48 @@ export class AlbumController {
     public notificationService: NotificationService, // Inject NotificationService
   ) {}
 
-  @authenticate('jwt')
-  @intercept('user')
+  // @authenticate('jwt')
+  // @intercept('user')
   @post('/albums')
   @response(200, {
-    description: 'Album model instance',
+    description: 'Album created successfully',
     content: {'application/json': {schema: getModelSchemaRef(Album)}},
   })
   async create(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Album, {
-            title: 'NewAlbum',
-            exclude: ['id'],
-          }),
-        },
-      },
-    })
-    album: Omit<Album, 'id'>,
+    @inject(RestBindings.Http.REQUEST) request: Request,
   ): Promise<Album> {
-    try {
-      // Tạo album
-      const newAlbum = await this.albumRepository.create(album);
+    return new Promise((resolve, reject) => {
+      const upload = multer().fields([
+        {name: 'title', maxCount: 1},
+        {name: 'userId', maxCount: 1},
+      ]);
 
-      // check exist album title
-      const albumTitle = await this.albumRepository.findOne({
-        where: {title: newAlbum.title},
+      upload(request, null as any, async err => {
+        if (err) reject(new HttpErrors.BadRequest('Error processing request'));
+
+        const title = request.body.title;
+        const userId = request.body.userId;
+
+        if (!title || !userId) {
+          throw new HttpErrors.BadRequest('Title and UserId are required');
+        }
+
+        // Tạo album mới
+        try {
+          const newAlbum = await this.albumRepository.create({title, userId});
+
+          // Gửi notification cho những người theo dõi
+          await this.notificationService.notifyFollowersCreateNew(
+            newAlbum.userId,
+            'album',
+          );
+
+          resolve(newAlbum);
+        } catch (error) {
+          reject(new HttpErrors.InternalServerError(error.message));
+        }
       });
-      if (albumTitle) {
-        throw new HttpErrors.BadRequest('Tên album đã tồn tại.');
-      }
-
-      // Gọi notification service sau khi album được tạo thành công
-      await this.notificationService.notifyFollowersCreateNew(newAlbum.userId, 'album');
-
-      return newAlbum;
-    } catch (error) {
-      throw new HttpErrors.BadRequest(error.message);
-    }
+    });
   }
 
   @authenticate('jwt')
@@ -87,8 +93,8 @@ export class AlbumController {
     }
   }
 
-  @authenticate('jwt')
-  @intercept('admin')
+  // @authenticate('jwt')
+  // @intercept('admin')
   @get('/albums')
   @response(200, {
     description: 'Array of Album model instances',

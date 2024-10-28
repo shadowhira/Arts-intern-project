@@ -14,10 +14,6 @@ export class Album extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {
-      minLength: 3,
-      maxLength: 50,
-    },
   })
   title: string;
 
