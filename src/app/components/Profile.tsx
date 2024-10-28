@@ -8,27 +8,38 @@ export default function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      message.warning("Please login first.");
-      router.push("/login");
-    } else {
-      // Gọi API để lấy thông tin người dùng nếu cần
-      fetch("http://localhost:3000/api/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => res.json())
-        .then((data) => setUser(data))
-        .catch(() => {
-          message.error("Failed to fetch user data.");
-          router.push("/login");
+    const fetchUserData = async () => {
+      const token = localStorage.getItem("accessToken");
+  
+      if (!token) {
+        message.warning("Please login first.");
+        router.push("/login");
+        return;
+      }
+  
+      try {
+        const response = await fetch("http://localhost:8000/me", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-    }
-  }, [router]);
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data.");
+        }
+  
+        const data = await response.json();
+        setUser(data);
+      } catch (error) {
+        message.error("Failed to fetch user data.");
+        router.push("/login");
+      }
+    };
+  
+    fetchUserData();
+  }, [router]);  
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     message.success("Logged out successfully.");
     router.push("/login");
   };

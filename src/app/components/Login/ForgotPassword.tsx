@@ -1,14 +1,15 @@
 "use client";
 import { Form, Input, Button, message, Spin } from "antd";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-export default function RegisterPage() {
+export default function ResetPasswordPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email"); // Lấy email từ URL
   const [loading, setLoading] = useState(false);
-  const [checkingEmail, setCheckingEmail] = useState(false); // Kiểm tra email
+  const [checkingEmail, setCheckingEmail] = useState(false);
 
-  // Kiểm tra email đã tồn tại khi người dùng rời khỏi ô nhập email
   const checkEmail = async (email: string) => {
     setCheckingEmail(true);
   
@@ -35,28 +36,23 @@ export default function RegisterPage() {
     }
   };  
 
+  // Xử lý đặt lại mật khẩu
   const onFinish = async (values: any) => {
     setLoading(true);
-
-    // Prepare FormData for multipart request
-    const formData = new FormData();
-    formData.append('username', values.username);
-    formData.append('password', values.password);
-    formData.append('email', values.email);
-
     try {
-      const response = await fetch('http://127.0.0.1:8000/signup', {
-        method: 'POST',
-        body: formData, // No need to set Content-Type; browser will do it
+      const response = await fetch("http://127.0.0.1:8000/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email, 
+          newPassword: values.password 
+        }),
       });
 
-      const result = await response.json();
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Đăng ký thất bại!');
-      }
+      if (!response.ok) throw new Error("Không thể đặt lại mật khẩu.");
 
-      message.success('Đăng ký thành công!');
-      router.push('/login');
+      message.success("Mật khẩu đã được đặt lại thành công!");
+      router.push("/login");
     } catch (error) {
       message.error((error as Error).message);
     } finally {
@@ -66,11 +62,13 @@ export default function RegisterPage() {
 
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-semibold text-center mb-6">Đăng ký tài khoản</h1>
+      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
+        <h1 className="text-2xl font-semibold text-center mb-6">
+          Đặt lại mật khẩu
+        </h1>
 
         <Form onFinish={onFinish} layout="vertical">
-          <Form.Item
+        <Form.Item
             label="Email"
             name="email"
             rules={[{ required: true, type: "email", message: "Vui lòng nhập email hợp lệ!" }]}
@@ -82,17 +80,7 @@ export default function RegisterPage() {
           </Form.Item>
 
           <Form.Item
-            label="Tài khoản"
-            name="username"
-            rules={[
-              { required: true, message: "Vui lòng nhập tài khoản!" },
-            ]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            label="Mật khẩu"
+            label="Mật khẩu mới"
             name="password"
             rules={[
               { required: true, message: "Vui lòng nhập mật khẩu!" },
@@ -105,15 +93,15 @@ export default function RegisterPage() {
           <Form.Item
             label="Xác nhận mật khẩu"
             name="confirmPassword"
-            dependencies={['password']}
+            dependencies={["password"]}
             rules={[
               { required: true, message: "Vui lòng xác nhận mật khẩu!" },
               ({ getFieldValue }) => ({
                 validator(_, value) {
-                  if (!value || getFieldValue('password') === value) {
+                  if (!value || getFieldValue("password") === value) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error('Mật khẩu không khớp!'));
+                  return Promise.reject(new Error("Mật khẩu không khớp!"));
                 },
               }),
             ]}
@@ -128,7 +116,7 @@ export default function RegisterPage() {
               className="w-full"
               loading={loading}
             >
-              Đăng ký
+              Xác nhận
             </Button>
           </Form.Item>
 

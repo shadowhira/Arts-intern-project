@@ -7,37 +7,24 @@ export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
+  // Xử lý đăng nhập
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      // Tạo FormData và thêm thông tin đăng nhập
-      const formData = new FormData();
-      formData.append("email", values.email);
-      formData.append("password", values.password);
-
       const response = await fetch("http://127.0.0.1:8000/login", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
       });
 
-      if (!response.ok) throw new Error("Login failed");
+      if (!response.ok) throw new Error("Sai email hoặc mật khẩu!");
 
-      const { accessToken, refreshToken } = await response.json();
-
-      // Kiểm tra nếu đăng nhập thất bại
-      if (!accessToken || !refreshToken) {
-        message.error("Sai email hoặc mật khẩu.");
-        return;
-      }
-
-      // Nếu thành công, lưu token và chuyển hướng
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-
-      message.success("Login successful!");
-      router.push("/profile");
+      message.success("Đăng nhập thành công!");
+      router.push("/profile"); // Chuyển hướng sau khi đăng nhập thành công
     } catch (error) {
       message.error((error as Error).message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,16 +34,13 @@ export default function LoginPage() {
         <h1 className="text-2xl font-semibold text-center mb-8 text-gray-800">
           Đăng nhập
         </h1>
+
         <Form onFinish={onFinish} layout="vertical">
           <Form.Item
             label="Email"
             name="email"
             rules={[
-              {
-                required: true,
-                type: "email",
-                message: "Vui lòng nhập email hợp lệ!",
-              },
+              { required: true, type: "email", message: "Vui lòng nhập email hợp lệ!" },
             ]}
           >
             <Input placeholder="Nhập email của bạn" />
@@ -65,7 +49,9 @@ export default function LoginPage() {
           <Form.Item
             label="Mật khẩu"
             name="password"
-            rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập mật khẩu!" },
+            ]}
           >
             <Input.Password placeholder="Nhập mật khẩu" />
           </Form.Item>
