@@ -5,7 +5,7 @@ import {
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
 import {RepositoryMixin} from '@loopback/repository';
-import {RestApplication} from '@loopback/rest';
+import {RestApplication, RestBindings} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
 import {MySequence} from './sequence';
@@ -31,14 +31,6 @@ export class ArtsApiApplication extends BootMixin(
   public io: Server;
   constructor(options: ApplicationConfig = {}) {
     super(options);
-
-    // cors
-    // this.bind('middleware.CORS').to(cors({
-    //   origin: 'http://localhost:3000', // Thay thế với origin của front-end
-    //   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    //   allowedHeaders: ['Content-Type', 'Authorization'],
-    //   optionsSuccessStatus: 200, 
-    // }));
 
     // middleware
     this.middleware(errorHandlerMiddleware);

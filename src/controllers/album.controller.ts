@@ -54,6 +54,7 @@ export class AlbumController {
         if (err) reject(new HttpErrors.BadRequest('Error processing request'));
 
         const title = request.body.title;
+        console.log('title: ', title);
         const userId = request.body.userId;
 
         if (!title || !userId) {
