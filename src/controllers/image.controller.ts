@@ -17,6 +17,8 @@ import {
   requestBody,
   response,
   HttpErrors,
+  RestBindings,
+  Request,
 } from '@loopback/rest';
 import {Image} from '../models';
 import {ImageRepository} from '../repositories';
@@ -25,8 +27,7 @@ import {authenticate} from '@loopback/authentication';
 import {NotificationService} from '../services/notification.service';
 import multer from 'multer';
 import cloudinary from '../config/cloudinary.config';
-
-const upload = multer({dest: 'uploads/'});
+import {Readable} from 'stream';
 
 export class ImageController {
   constructor(
@@ -46,10 +47,11 @@ export class ImageController {
     @requestBody({
       content: {
         'multipart/form-data': {
+          'x-parser': 'stream',
           schema: {
             type: 'object',
             properties: {
-              file: {type: 'string', format: 'binary'},
+              file: {type: 'object'},
               title: {type: 'string'},
               star: {type: 'number'},
               albumId: {type: 'string'},
@@ -66,17 +68,28 @@ export class ImageController {
       albumId: string;
       userId: string;
     },
+    @inject(RestBindings.Http.REQUEST) request: Request,
   ): Promise<Image> {
-    const {file, title, star, userId} = requestData;
+    const {file} = requestData;
+    const {title, star, albumId, userId} = request.body;
 
     if (!file) {
       throw new HttpErrors.BadRequest('No file uploaded');
     }
 
     try {
+      // Chuyển đổi buffer thành stream
+      const bufferStream = new Readable();
+      bufferStream.push(file.buffer);
+      bufferStream.push(null);
+
       // Upload ảnh lên Cloudinary
-      const result = await cloudinary.uploader.upload(file.path, {
-        folder: 'uploads',
+      const result = await new Promise<any>((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream((error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        });
+        bufferStream.pipe(stream);
       });
 
       // Tạo đối tượng ảnh với URL từ Cloudinary
@@ -88,11 +101,14 @@ export class ImageController {
       });
 
       // Gửi notification cho những người theo dõi
-      await this.notificationService.notifyFollowersCreateNew(newImage.userId, 'image');
+      await this.notificationService.notifyFollowersCreateNew(
+        newImage.userId,
+        'image',
+      );
 
       return newImage;
     } catch (error) {
-      throw new HttpErrors.BadRequest('Tạo mới ảnh thất bại.');
+      throw new HttpErrors.BadRequest('Tạo mới ảnh thất bại: ' + error.message);
     }
   }
 

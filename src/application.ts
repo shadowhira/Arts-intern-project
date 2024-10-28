@@ -31,12 +31,12 @@ export class ArtsApiApplication extends BootMixin(
     super(options);
 
     // CORS
-    this.bind('rest.cors.options').to({
-      origin: '*', 
-      methods: 'GET,POST,PUT,DELETE',
-      allowedHeaders: 'Content-Type,Authorization',
-      credentials: true,
-    });
+    // this.bind('rest.cors.options').to({
+    //   origin: '*', 
+    //   methods: 'GET,POST,PUT,DELETE',
+    //   allowedHeaders: 'Content-Type,Authorization',
+    //   credentials: true,
+    // });
 
     // middleware
     this.middleware(errorHandlerMiddleware);

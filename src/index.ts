@@ -19,17 +19,15 @@ export async function main(options: ApplicationConfig = {}) {
 
 if (require.main === module) {
   // Run the application
-  console.log("hihihih");
   const config = {
     rest: {
       cors: {
         origin: '*',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-        preflightContinue: false,
+        preflightContinue: true,
         optionsSuccessStatus: 204,
         maxAge: 86400,
         credentials: true,
-        
       },
       
       port: +(process.env.PORT ?? 8000),
