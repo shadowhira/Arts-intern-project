@@ -22,7 +22,7 @@ export default function LoginPage() {
 
       if (!response.ok) throw new Error("Login failed");
 
-      const { accessToken, refreshToken } = await response.json();
+      const { accessToken, refreshToken, accessTokenExpiresIn, refreshTokenExpiresIn } = await response.json();
 
       // Kiểm tra nếu đăng nhập thất bại
       if (!accessToken || !refreshToken) {
@@ -30,9 +30,16 @@ export default function LoginPage() {
         return;
       }
 
+      const accessTokenExpirationTime = new Date().getTime() + accessTokenExpiresIn * 1000;
+      const accessTokenExpirationDate = new Date(accessTokenExpirationTime).toLocaleString();
+      const refreshTokenExpirationTime = new Date().getTime() + refreshTokenExpiresIn * 1000;
+      const refreshTokenExpirationDate = new Date(refreshTokenExpirationTime).toLocaleString();
+
       // Nếu thành công, lưu token và chuyển hướng
       localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("accessTokenExpirationDate", accessTokenExpirationDate);
       localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("refreshTokenExpirationDate", refreshTokenExpirationDate);
 
       message.success("Login successful!");
       router.push("/profile");
