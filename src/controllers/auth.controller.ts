@@ -10,7 +10,10 @@ import {Request, RestBindings, HttpErrors} from '@loopback/rest';
 import multer from 'multer';
 
 const SECRET_KEY = 'jwt_secret';
-const REFRESH_SECRET_KEY = 'jwt_secret_refresh';
+const ACCESS_EXPIRES_IN = '20s';
+const REFRESH_EXPIRES_IN = '10m';
+const ACCESS_TIME = 10;
+const REFRESH_TIME = 600;
 
 const storage = multer.memoryStorage();
 const upload = multer({storage});
@@ -76,7 +79,7 @@ export class AuthController {
   })
   async login(
     @inject(RestBindings.Http.REQUEST) request: Request,
-  ): Promise<{accessToken: string; refreshToken: string} | {success: boolean}> {
+  ): Promise<{accessToken: string; refreshToken: string; accessTokenExpiresIn: number; refreshTokenExpiresIn: number } | {success: boolean}> {
     return new Promise((resolve, reject) => {
       upload.fields([
         {name: 'email', maxCount: 1},
@@ -110,16 +113,14 @@ export class AuthController {
           const accessToken = jwt.sign(
             {id: user.id, email: user.email, role: user.role},
             SECRET_KEY,
-            {expiresIn: '1m'},
+            {expiresIn: ACCESS_EXPIRES_IN},
           );
-  
-          const refreshToken = jwt.sign(
-            {id: user.id},
-            REFRESH_SECRET_KEY,
-            {expiresIn: '7d'},
-          );
-  
-          resolve({accessToken, refreshToken});
+
+          const refreshToken = jwt.sign({id: user.id, email: user.email, role: user.role}, SECRET_KEY, {
+            expiresIn: REFRESH_EXPIRES_IN,
+          });
+
+          resolve({accessToken, refreshToken, accessTokenExpiresIn: ACCESS_TIME, refreshTokenExpiresIn: REFRESH_TIME});
         } catch (error) {
           reject(new HttpErrors.InternalServerError(error.message));
         }
@@ -193,15 +194,46 @@ export class AuthController {
   }
 
   @post('/refresh-token')
-  @authenticate('jwt')
+  @response(200, {
+    description: 'Refresh access token',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            accessToken: {type: 'string'},
+            expiresIn: {type: 'number'},
+          },
+        },
+      },
+    },
+  })
   async refreshToken(
-    @inject(SecurityBindings.USER) user: UserProfile,
-  ): Promise<{token: string}> {
-    const token = jwt.sign(
-      {id: user[securityId], email: user.email, role: user.roles},
-      SECRET_KEY,
-      {expiresIn: '1h'},
-    );
-    return {token};
+    @inject(RestBindings.Http.REQUEST) request: Request,
+  ): Promise<{accessToken: string; accessTokenExpiresIn: number}> {
+    return new Promise((resolve, reject) => {
+      upload.single('refreshToken')(request, null as any, async err => {
+        if (err) {
+          return reject(new HttpErrors.BadRequest('Error processing request'));
+        }
+
+        const refreshToken = request.body.refreshToken;
+        if (!refreshToken) {
+          return reject(new HttpErrors.BadRequest('Refresh token is required'));
+        }
+
+        try {
+          const payload = jwt.verify(refreshToken, SECRET_KEY) as any;
+          const accessToken = jwt.sign(
+            {id: payload.id, email: payload.email, role: payload.role},
+            SECRET_KEY,
+            {expiresIn: ACCESS_EXPIRES_IN},
+          );
+          resolve({accessToken, accessTokenExpiresIn: ACCESS_TIME }); // expiresIn in seconds
+        } catch (error) {
+          return reject(new HttpErrors.Unauthorized('Invalid refresh token'));
+        }
+      });
+    });
   }
 }

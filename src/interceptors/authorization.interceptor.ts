@@ -11,7 +11,7 @@ import {Request, Response} from 'express';
 
 import {UserRepository} from '../repositories';
 
-const SECRET_KEY = 'jwt_secret'; // Thay thế bằng secret key của bạn
+const SECRET_KEY = 'jwt_secret';
 
 export class CheckAdminInterceptor implements Provider<Interceptor> {
   constructor() {}
