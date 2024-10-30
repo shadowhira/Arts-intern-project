@@ -12,14 +12,13 @@ export default function RegisterPage() {
   const checkEmail = async (email: string) => {
     setCheckingEmail(true);
   
-    // Prepare the multipart/form-data
-    const formData = new FormData();
-    formData.append('email', email);
-  
     try {
       const res = await fetch('http://127.0.0.1:8000/check-email', {
         method: 'POST',
-        body: formData, // Send the email using FormData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
       });
   
       const data = await res.json();
@@ -33,28 +32,29 @@ export default function RegisterPage() {
     } finally {
       setCheckingEmail(false);
     }
-  };  
+  };
 
   const onFinish = async (values: any) => {
     setLoading(true);
-
-    // Prepare FormData for multipart request
-    const formData = new FormData();
-    formData.append('username', values.username);
-    formData.append('password', values.password);
-    formData.append('email', values.email);
-
+  
     try {
       const response = await fetch('http://127.0.0.1:8000/signup', {
         method: 'POST',
-        body: formData, // No need to set Content-Type; browser will do it
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: values.username,
+          password: values.password,
+          email: values.email,
+        }),
       });
-
+  
       const result = await response.json();
       if (!response.ok || !result.success) {
         throw new Error(result.message || 'Đăng ký thất bại!');
       }
-
+  
       message.success('Đăng ký thành công!');
       router.push('/login');
     } catch (error) {

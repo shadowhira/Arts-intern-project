@@ -33,36 +33,47 @@ export default function UploadPage() {
       message.warning("Please select a photo to upload.");
       return;
     }
-
+  
     if (!selectedAlbum) {
       message.warning("Please select an album.");
       return;
     }
-
-    const formData = new FormData();
-    formData.append("title", values.title);
-    formData.append("file", fileList[0].originFileObj as RcFile);
-    formData.append("star", "0");
-    formData.append("albumId", selectedAlbum);
-    formData.append("userId", "671a0078324b3e492878c6bb"); // Thay thế bằng userId thực tế
-
-    try {
-      const response = await fetch("http://127.0.0.1:8000/images", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error response:", errorData);
-        throw new Error("Failed to upload");
+  
+    const file = fileList[0].originFileObj as RcFile;
+    const reader = new FileReader();
+  
+    reader.onloadend = async () => {
+      const base64File = reader.result as string;
+  
+      try {
+        const response = await fetch("http://127.0.0.1:8000/images", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: values.title,
+            file: base64File.split(',')[1], // Loại bỏ tiền tố "data:image/jpeg;base64,"
+            star: 0,
+            albumId: selectedAlbum,
+            userId: '671a0078324b3e492878c6bb', // Thay thế bằng userId thực tế
+          }),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Error response:", errorData);
+          throw new Error("Failed to upload");
+        }
+  
+        message.success("Upload successful!");
+      } catch (error) {
+        console.error("Upload failed:", error);
+        message.error("Upload failed. Please try again.");
       }
-
-      message.success("Upload successful!");
-    } catch (error) {
-      console.error("Upload failed:", error);
-      message.error("Upload failed. Please try again.");
-    }
+    };
+  
+    reader.readAsDataURL(file);
   };
 
   const handleChange = ({
@@ -83,15 +94,15 @@ export default function UploadPage() {
 
   const handleOk = async () => {
     try {
-      // Tạo đối tượng FormData và thêm dữ liệu
-      const formData = new FormData();
-      formData.append('title', newAlbumTitle);
-      formData.append('userId', '671a0078324b3e492878c6bb'); // Thay bằng userId thực tế
-  
-      // Gửi request với 'multipart/form-data' tự động từ FormData
       const response = await fetch("http://127.0.0.1:8000/albums", {
         method: "POST",
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: newAlbumTitle,
+          userId: '671a0078324b3e492878c6bb', // Thay bằng userId thực tế
+        }),
       });
   
       if (!response.ok) {

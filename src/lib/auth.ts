@@ -16,27 +16,23 @@ export const getAccessToken = async () => {
     }
 
     try {
-      const formData = new FormData();
-      formData.append("refreshToken", refreshToken);
-
       const response = await fetch("http://localhost:8000/refresh-token", {
         method: "POST",
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
       });
 
       if (!response.ok) {
-          throw new Error("Failed to refresh access token.");
-        }
-        console.log('response: ', response);
+        throw new Error("Failed to refresh access token.");
+      }
 
-      const { accessToken: newAccessToken, accessTokenExpiresIn, refreshTokenExpiresIn } = await response.json();
+      const { accessToken: newAccessToken, accessTokenExpiresIn } = await response.json();
       const accessTokenExpirationTime = new Date().getTime() + accessTokenExpiresIn * 1000;
       const accessTokenExpirationDate = new Date(accessTokenExpirationTime).toLocaleString();
-    //   const refreshTokenExpirationTime = new Date().getTime() + refreshTokenExpiresIn * 1000;
-    //   const refreshTokenExpirationDate = new Date(refreshTokenExpirationTime).toLocaleString();
       localStorage.setItem("accessToken", newAccessToken);
       localStorage.setItem("accessTokenExpirationDate", accessTokenExpirationDate);
-    //   localStorage.setItem("refreshTokenExpirationDate", refreshTokenExpirationDate);
 
       return newAccessToken;
     } catch (error) {

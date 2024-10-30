@@ -10,41 +10,42 @@ export default function LoginPage() {
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      // Tạo FormData và thêm thông tin đăng nhập
-      const formData = new FormData();
-      formData.append("email", values.email);
-      formData.append("password", values.password);
-
       const response = await fetch("http://127.0.0.1:8000/login", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
       });
-
+  
       if (!response.ok) throw new Error("Login failed");
-
+  
       const { accessToken, refreshToken, accessTokenExpiresIn, refreshTokenExpiresIn } = await response.json();
-
-      // Kiểm tra nếu đăng nhập thất bại
+  
       if (!accessToken || !refreshToken) {
         message.error("Sai email hoặc mật khẩu.");
         return;
       }
-
+  
       const accessTokenExpirationTime = new Date().getTime() + accessTokenExpiresIn * 1000;
       const accessTokenExpirationDate = new Date(accessTokenExpirationTime).toLocaleString();
       const refreshTokenExpirationTime = new Date().getTime() + refreshTokenExpiresIn * 1000;
       const refreshTokenExpirationDate = new Date(refreshTokenExpirationTime).toLocaleString();
-
-      // Nếu thành công, lưu token và chuyển hướng
+  
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("accessTokenExpirationDate", accessTokenExpirationDate);
       localStorage.setItem("refreshToken", refreshToken);
       localStorage.setItem("refreshTokenExpirationDate", refreshTokenExpirationDate);
-
+  
       message.success("Login successful!");
       router.push("/profile");
     } catch (error) {
       message.error((error as Error).message);
+    } finally {
+      setLoading(false);
     }
   };
 
