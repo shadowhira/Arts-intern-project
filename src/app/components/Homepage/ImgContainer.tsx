@@ -1,13 +1,38 @@
-import type { Photo } from "@/models/Images";
+"use client"
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 type Props = {
-  photo: Photo;
+  photo: {
+    id: string;
+    title: string;
+    url: string;
+    star: number;
+    public: boolean;
+    albumId: string;
+    userId: string;
+    blurredDataUrl?: string;
+  };
 };
 
 export default function ImgContainer({ photo }: Props) {
-  const widthHeightRatio = photo.height / photo.width;
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = photo.url;
+    img.onload = () => {
+      setDimensions({ width: img.width, height: img.height });
+    };
+  }, [photo.url]);
+
+  if (dimensions.width === 0 || dimensions.height === 0) {
+    return null; // Hoặc hiển thị một placeholder trong khi chờ lấy kích thước ảnh
+  }
+
+  const widthHeightRatio = dimensions.height / dimensions.width;
   const galleryHeight = Math.ceil(250 * widthHeightRatio);
   const photoSpans = Math.ceil(galleryHeight / 10) + 1; // 10 pixel per row
 
@@ -16,15 +41,10 @@ export default function ImgContainer({ photo }: Props) {
       className="w-[250px] justify-self-center"
       style={{ gridRow: `span ${photoSpans}` }}
     >
-      <Link
-        href={photo.url}
-        target="_blank"
-        className="grid place-content-center"
-      >
         <div className="rounded-xl overflow-hidden group">
           <Image
-            src={photo.src.large}
-            alt={photo.alt}
+            src={photo.url}
+            alt={photo.title}
             width={250}
             height={galleryHeight}
             sizes="250px"
@@ -33,7 +53,6 @@ export default function ImgContainer({ photo }: Props) {
             className="group-hover:opacity-75"
           />
         </div>
-      </Link>
     </div>
   );
 }

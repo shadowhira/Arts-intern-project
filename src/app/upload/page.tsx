@@ -180,7 +180,7 @@ export default function UploadPage() {
       </Form.Item>
       <Modal
         title="Create New Album"
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >

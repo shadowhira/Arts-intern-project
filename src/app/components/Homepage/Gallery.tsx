@@ -1,5 +1,4 @@
 import fetchImages from "@/lib/fetchImages";
-import type { ImagesResults } from "@/models/Images";
 import ImgContainer from "./ImgContainer";
 import React from "react";
 import addBlurredDataUrls from "@/lib/getBase64";
@@ -13,27 +12,28 @@ type Props = {
 };
 
 export default async function Gallery({ topic = "curated", page }: Props) {
-  const url =
-    topic === "curated"
-      ? `https://api.pexels.com/v1/curated?page=${page}`
-      : `https://api.pexels.com/v1/search?query=${topic}&page=${page}`;
+  const url = `http://127.0.0.1:8000/images`;
 
-  const images: ImagesResults | undefined = await fetchImages(url);
+  const response = await fetch(url);
+  const images = await response.json();
 
-  if (!images || images.per_page === 0)
+  if (!images || images.length === 0)
     return <h2 className="m-4 text-2xl font-bold">No Images Found</h2>;
 
-  const photosWithBlur = await addBlurredDataUrls(images);
+  // Lọc các ảnh có thuộc tính public là true
+  const publicImages = images.filter((image: any) => image.public);
+
+  const photosWithBlur = await addBlurredDataUrls(publicImages);
 
   // calculate pagination
-  const { prevPage, nextPage } = getPrevNextPages(images);
+  const { prevPage, nextPage } = getPrevNextPages(publicImages);
   const footerProps = { topic, page, nextPage, prevPage };
 
   return (
     <>
       <Filter />
       <section className="px-1 my-3 grid grid-cols-gallery auto-rows-[10px]">
-        {photosWithBlur.map((photo) => (
+        {photosWithBlur.map((photo: any) => (
           <ImgContainer key={photo.id} photo={photo} />
         ))}
       </section>
