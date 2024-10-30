@@ -63,6 +63,7 @@
     "@loopback/socketio": "^0.8.7",
     "@types/socket.io": "^3.0.2",
     "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.3",
     "cloudinary": "^2.5.1",
     "concurrently": "^9.0.1",
     "cors": "^2.8.5",

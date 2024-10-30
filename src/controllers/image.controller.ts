@@ -46,43 +46,40 @@ export class ImageController {
   async create(
     @requestBody({
       content: {
-        'multipart/form-data': {
-          'x-parser': 'stream',
+        'application/json': {
           schema: {
             type: 'object',
             properties: {
-              file: {type: 'object'},
+              file: {type: 'string', format: 'binary'},
               title: {type: 'string'},
               star: {type: 'number'},
               albumId: {type: 'string'},
               userId: {type: 'string'},
             },
+            required: ['file', 'title', 'star', 'albumId', 'userId'],
           },
         },
       },
-    })
-    requestData: {
-      file: Express.Multer.File;
+    }) requestData: {
+      file: string;
       title: string;
       star: number;
       albumId: string;
       userId: string;
     },
-    @inject(RestBindings.Http.REQUEST) request: Request,
   ): Promise<Image> {
-    const {file} = requestData;
-    const {title, star, albumId, userId} = request.body;
-
+    const {file, title, star, albumId, userId} = requestData;
+  
     if (!file) {
       throw new HttpErrors.BadRequest('No file uploaded');
     }
-
+  
     try {
       // Chuyển đổi buffer thành stream
       const bufferStream = new Readable();
-      bufferStream.push(file.buffer);
+      bufferStream.push(Buffer.from(file, 'base64'));
       bufferStream.push(null);
-
+  
       // Upload ảnh lên Cloudinary
       const result = await new Promise<any>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream((error, result) => {
@@ -91,21 +88,22 @@ export class ImageController {
         });
         bufferStream.pipe(stream);
       });
-
+  
       // Tạo đối tượng ảnh với URL từ Cloudinary
       const newImage = await this.imageRepository.create({
         title,
         url: result.secure_url,
         star,
+        albumId, // Lưu albumId vào thuộc tính của ảnh
         userId,
       });
-
+  
       // Gửi notification cho những người theo dõi
       await this.notificationService.notifyFollowersCreateNew(
         newImage.userId,
         'image',
       );
-
+  
       return newImage;
     } catch (error) {
       throw new HttpErrors.BadRequest('Tạo mới ảnh thất bại: ' + error.message);

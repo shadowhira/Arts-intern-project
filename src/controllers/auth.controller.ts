@@ -41,31 +41,31 @@ export class AuthController {
     },
   })
   async checkEmail(
-    @inject(RestBindings.Http.REQUEST) request: Request,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              email: {type: 'string'},
+            },
+            required: ['email'],
+          },
+        },
+      },
+    }) body: {email: string},
   ): Promise<{exists: boolean}> {
-    return new Promise((resolve, reject) => {
-      upload.single('email')(request, null as any, async err => {
-        if (err) {
-          reject(
-            new HttpErrors.BadRequest('Error processing multipart request'),
-          );
-          return;
-        }
-
-        const email = request.body.email;
-        if (!email) {
-          reject(new HttpErrors.BadRequest('Email is required'));
-          return;
-        }
-
-        try {
-          const user = await this.userRepository.findOne({where: {email}});
-          resolve({exists: !!user});
-        } catch (error) {
-          reject(new HttpErrors.InternalServerError('Error checking email'));
-        }
-      });
-    });
+    const {email} = body;
+    if (!email) {
+      throw new HttpErrors.BadRequest('Email is required');
+    }
+  
+    try {
+      const user = await this.userRepository.findOne({where: {email}});
+      return {exists: !!user};
+    } catch (error) {
+      throw new HttpErrors.InternalServerError('Error checking email');
+    }
   }
 
   @post('/login')
@@ -78,54 +78,73 @@ export class AuthController {
     },
   })
   async login(
-    @inject(RestBindings.Http.REQUEST) request: Request,
-  ): Promise<{accessToken: string; refreshToken: string; accessTokenExpiresIn: number; refreshTokenExpiresIn: number } | {success: boolean}> {
-    return new Promise((resolve, reject) => {
-      upload.fields([
-        {name: 'email', maxCount: 1},
-        {name: 'password', maxCount: 1},
-      ])(request, null as any, async err => {
-        if (err) reject(new HttpErrors.BadRequest('Error processing request'));
-
-        const {email, password} = request.body;
-        if (!email || !password) {
-          reject(
-            new HttpErrors.BadRequest('Username and password are required'),
-          );
-        }
-
-        // Kiểm tra thông tin đăng nhập
-        try {
-          const user = await this.userRepository.findOne({
-            where: {email},
-          });
-          if (!user) {
-            resolve({success: false});
-            return;
-          }
-
-          const passwordMatched = await bcrypt.compare(password, user.password);
-          if (!passwordMatched) {
-            resolve({success: false});
-            return;
-          }
-
-          const accessToken = jwt.sign(
-            {id: user.id, email: user.email, role: user.role},
-            SECRET_KEY,
-            {expiresIn: ACCESS_EXPIRES_IN},
-          );
-
-          const refreshToken = jwt.sign({id: user.id, email: user.email, role: user.role}, SECRET_KEY, {
-            expiresIn: REFRESH_EXPIRES_IN,
-          });
-
-          resolve({accessToken, refreshToken, accessTokenExpiresIn: ACCESS_TIME, refreshTokenExpiresIn: REFRESH_TIME});
-        } catch (error) {
-          reject(new HttpErrors.InternalServerError(error.message));
-        }
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              email: {type: 'string'},
+              password: {type: 'string'},
+            },
+            required: ['email', 'password'],
+          },
+        },
+      },
+    })
+    credentials: {
+      email: string;
+      password: string;
+    },
+  ): Promise<
+    | {
+        accessToken: string;
+        refreshToken: string;
+        accessTokenExpiresIn: number;
+        refreshTokenExpiresIn: number;
+      }
+    | {success: boolean}
+  > {
+    const {email, password} = credentials;
+    if (!email || !password) {
+      throw new HttpErrors.BadRequest('Username and password are required');
+    }
+    try {
+      const user = await this.userRepository.findOne({
+        where: {email},
       });
-    });
+      if (!user) {
+        return {success: false};
+      }
+
+      const passwordMatched = await bcrypt.compare(password, user.password);
+      if (!passwordMatched) {
+        return {success: false};
+      }
+
+      const accessToken = jwt.sign(
+        {id: user.id, email: user.email, role: user.role},
+        SECRET_KEY,
+        {expiresIn: ACCESS_EXPIRES_IN},
+      );
+
+      const refreshToken = jwt.sign(
+        {id: user.id, email: user.email, role: user.role},
+        SECRET_KEY,
+        {
+          expiresIn: REFRESH_EXPIRES_IN,
+        },
+      );
+
+      return {
+        accessToken,
+        refreshToken,
+        accessTokenExpiresIn: ACCESS_TIME,
+        refreshTokenExpiresIn: REFRESH_TIME,
+      };
+    } catch (error) {
+      throw new HttpErrors.InternalServerError(error.message);
+    }
   }
 
   @post('/signup')
@@ -144,55 +163,52 @@ export class AuthController {
     },
   })
   async signup(
-    @inject(RestBindings.Http.REQUEST) request: Request,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              username: {type: 'string'},
+              password: {type: 'string'},
+              email: {type: 'string'},
+            },
+            required: ['username', 'password', 'email'],
+          },
+        },
+      },
+    }) body: {username: string; password: string; email: string},
   ): Promise<{success: boolean; message: string}> {
-    return new Promise((resolve, reject) => {
-      upload.fields([
-        {name: 'username', maxCount: 1},
-        {name: 'password', maxCount: 1},
-        {name: 'email', maxCount: 1},
-      ])(request, null as any, async err => {
-        if (err) {
-          reject(
-            new HttpErrors.BadRequest('Error processing multipart request'),
-          );
-          return;
-        }
-
-        const {username, password, email} = request.body;
-        if (!username || !password || !email) {
-          reject(new HttpErrors.BadRequest('Missing required fields'));
-          return;
-        }
-
-        // Check if email already exists
-        const existingUser = await this.userRepository.findOne({
-          where: {email},
-        });
-        if (existingUser) {
-          resolve({
-            success: false,
-            message: 'Email đã tồn tại trong hệ thống.',
-          });
-          return;
-        }
-
-        try {
-          const passwordHash = await bcrypt.hash(password, 10);
-          await this.userRepository.create({
-            username,
-            password: passwordHash,
-            email,
-            role: ['user'],
-          });
-          resolve({success: true, message: 'User created successfully'});
-        } catch (error) {
-          reject(new HttpErrors.InternalServerError('Failed to create user'));
-        }
-      });
+    const {username, password, email} = body;
+    if (!username || !password || !email) {
+      throw new HttpErrors.BadRequest('Missing required fields');
+    }
+  
+    // Check if email already exists
+    const existingUser = await this.userRepository.findOne({
+      where: {email},
     });
+    if (existingUser) {
+      return {
+        success: false,
+        message: 'Email đã tồn tại trong hệ thống.',
+      };
+    }
+  
+    try {
+      const passwordHash = await bcrypt.hash(password, 10);
+      await this.userRepository.create({
+        username,
+        password: passwordHash,
+        email,
+        role: ['user'],
+      });
+      return {success: true, message: 'User created successfully'};
+    } catch (error) {
+      throw new HttpErrors.InternalServerError('Failed to create user');
+    }
   }
-
+  
   @post('/refresh-token')
   @response(200, {
     description: 'Refresh access token',
@@ -209,31 +225,35 @@ export class AuthController {
     },
   })
   async refreshToken(
-    @inject(RestBindings.Http.REQUEST) request: Request,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              refreshToken: {type: 'string'},
+            },
+            required: ['refreshToken'],
+          },
+        },
+      },
+    }) body: {refreshToken: string},
   ): Promise<{accessToken: string; accessTokenExpiresIn: number}> {
-    return new Promise((resolve, reject) => {
-      upload.single('refreshToken')(request, null as any, async err => {
-        if (err) {
-          return reject(new HttpErrors.BadRequest('Error processing request'));
-        }
-
-        const refreshToken = request.body.refreshToken;
-        if (!refreshToken) {
-          return reject(new HttpErrors.BadRequest('Refresh token is required'));
-        }
-
-        try {
-          const payload = jwt.verify(refreshToken, SECRET_KEY) as any;
-          const accessToken = jwt.sign(
-            {id: payload.id, email: payload.email, role: payload.role},
-            SECRET_KEY,
-            {expiresIn: ACCESS_EXPIRES_IN},
-          );
-          resolve({accessToken, accessTokenExpiresIn: ACCESS_TIME }); // expiresIn in seconds
-        } catch (error) {
-          return reject(new HttpErrors.Unauthorized('Invalid refresh token'));
-        }
-      });
-    });
+    const {refreshToken} = body;
+    if (!refreshToken) {
+      throw new HttpErrors.BadRequest('Refresh token is required');
+    }
+  
+    try {
+      const payload = jwt.verify(refreshToken, SECRET_KEY) as any;
+      const accessToken = jwt.sign(
+        {id: payload.id, email: payload.email, role: payload.role},
+        SECRET_KEY,
+        {expiresIn: ACCESS_EXPIRES_IN},
+      );
+      return {accessToken, accessTokenExpiresIn: ACCESS_TIME}; // expiresIn in seconds
+    } catch (error) {
+      throw new HttpErrors.Unauthorized('Invalid refresh token');
+    }
   }
 }

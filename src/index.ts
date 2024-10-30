@@ -21,14 +21,14 @@ if (require.main === module) {
   // Run the application
   const config = {
     rest: {
-      cors: {
-        origin: '*',
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-        preflightContinue: true,
-        optionsSuccessStatus: 204,
-        maxAge: 86400,
-        credentials: true,
-      },
+      // cors: {
+      //   origin: '*',
+      //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      //   preflightContinue: true,
+      //   optionsSuccessStatus: 204,
+      //   maxAge: 86400,
+      //   credentials: true,
+      // },
       
       port: +(process.env.PORT ?? 8000),
       host: process.env.HOST || '127.0.0.1',

@@ -42,40 +42,44 @@ export class AlbumController {
     content: {'application/json': {schema: getModelSchemaRef(Album)}},
   })
   async create(
-    @inject(RestBindings.Http.REQUEST) request: Request,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              title: {type: 'string'},
+              userId: {type: 'string'},
+            },
+            required: ['title', 'userId'],
+          },
+        },
+      },
+    }) requestData: {
+      title: string;
+      userId: string;
+    },
   ): Promise<Album> {
-    return new Promise((resolve, reject) => {
-      const upload = multer().fields([
-        {name: 'title', maxCount: 1},
-        {name: 'userId', maxCount: 1},
-      ]);
-
-      upload(request, null as any, async err => {
-        if (err) reject(new HttpErrors.BadRequest('Error processing request'));
-
-        const title = request.body.title;
-        const userId = request.body.userId;
-
-        if (!title || !userId) {
-          throw new HttpErrors.BadRequest('Title and UserId are required');
-        }
-
-        // Tạo album mới
-        try {
-          const newAlbum = await this.albumRepository.create({title, userId});
-
-          // Gửi notification cho những người theo dõi
-          await this.notificationService.notifyFollowersCreateNew(
-            newAlbum.userId,
-            'album',
-          );
-
-          resolve(newAlbum);
-        } catch (error) {
-          reject(new HttpErrors.InternalServerError(error.message));
-        }
-      });
-    });
+    const {title, userId} = requestData;
+  
+    if (!title || !userId) {
+      throw new HttpErrors.BadRequest('Title and UserId are required');
+    }
+  
+    try {
+      // Tạo album mới
+      const newAlbum = await this.albumRepository.create({title, userId});
+  
+      // Gửi notification cho những người theo dõi
+      await this.notificationService.notifyFollowersCreateNew(
+        newAlbum.userId,
+        'album',
+      );
+  
+      return newAlbum;
+    } catch (error) {
+      throw new HttpErrors.InternalServerError(error.message);
+    }
   }
 
   @authenticate('jwt')
