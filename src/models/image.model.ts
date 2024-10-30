@@ -28,12 +28,19 @@ export class Image extends Entity {
     required: true,
   })
   star: number;
-  
+
+  @property({
+    type: 'boolean',
+    required: true,
+  })
+  public: boolean;
+
   @belongsTo(() => Album)
   albumId: string;
 
   @belongsTo(() => User)
   userId: string;
+
   // Define well-known properties here
 
   // Indexer property to allow additional data

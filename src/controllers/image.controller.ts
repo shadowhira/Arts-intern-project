@@ -55,31 +55,34 @@ export class ImageController {
               star: {type: 'number'},
               albumId: {type: 'string'},
               userId: {type: 'string'},
+              public: {type: 'boolean'}, // Thêm trường public
             },
-            required: ['file', 'title', 'star', 'albumId', 'userId'],
+            required: ['file', 'title', 'star', 'albumId', 'userId', 'public'],
           },
         },
       },
-    }) requestData: {
+    })
+    requestData: {
       file: string;
       title: string;
       star: number;
       albumId: string;
       userId: string;
+      public: boolean;
     },
   ): Promise<Image> {
-    const {file, title, star, albumId, userId} = requestData;
-  
+    const {file, title, star, albumId, userId, public: isPublic} = requestData;
+
     if (!file) {
       throw new HttpErrors.BadRequest('No file uploaded');
     }
-  
+
     try {
       // Chuyển đổi buffer thành stream
       const bufferStream = new Readable();
       bufferStream.push(Buffer.from(file, 'base64'));
       bufferStream.push(null);
-  
+
       // Upload ảnh lên Cloudinary
       const result = await new Promise<any>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream((error, result) => {
@@ -88,7 +91,7 @@ export class ImageController {
         });
         bufferStream.pipe(stream);
       });
-  
+
       // Tạo đối tượng ảnh với URL từ Cloudinary
       const newImage = await this.imageRepository.create({
         title,
@@ -96,14 +99,15 @@ export class ImageController {
         star,
         albumId, // Lưu albumId vào thuộc tính của ảnh
         userId,
+        public: isPublic, // Lưu giá trị public
       });
-  
+
       // Gửi notification cho những người theo dõi
       await this.notificationService.notifyFollowersCreateNew(
         newImage.userId,
         'image',
       );
-  
+
       return newImage;
     } catch (error) {
       throw new HttpErrors.BadRequest('Tạo mới ảnh thất bại: ' + error.message);
