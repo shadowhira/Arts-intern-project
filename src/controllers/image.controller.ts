@@ -165,9 +165,19 @@ export class ImageController {
       },
     },
   })
-  async find(@param.filter(Image) filter?: Filter<Image>): Promise<Image[]> {
+  async find(
+    @param.filter(Image) filter?: Filter<Image>,
+    @param.query.string('title') title?: string,
+  ): Promise<Image[]> {
     try {
-      return await this.imageRepository.find(filter);
+      if (title) {
+        return this.imageRepository.find({
+          where: {
+            title: {like: title, options: 'i'}, // Case-insensitive search
+          },
+        });
+      }
+      return this.imageRepository.find(filter);
     } catch (error) {
       throw new HttpErrors.InternalServerError('Tìm hình ảnh thất bại.');
     }
