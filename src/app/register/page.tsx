@@ -1,5 +1,5 @@
 import React from 'react'
-import RegisterPage from '../components/Login/RegisterPage'
+import RegisterPage from '../components/Auth/RegisterPage'
 
 export default function page() {
   return (

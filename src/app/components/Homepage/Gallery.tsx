@@ -1,6 +1,5 @@
-"use client";
+"use client"
 
-// components/Gallery.tsx
 import fetchImages from "@/lib/fetchImages";
 import ImgContainer from "./ImgContainer";
 import React, { useState, useEffect } from "react";
@@ -10,7 +9,7 @@ import Footer from "../Footer";
 import Filter from "./Filter";
 
 type Props = {
-  title?: string;
+  topic?: string;
   page?: string;
 };
 
@@ -31,7 +30,7 @@ type Album = {
   title: string;
 };
 
-export default function Gallery({ title = "all", page }: Props) {
+export default function Gallery({ topic = "curated", page }: Props) {
   const [images, setImages] = useState<Image[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [selectedAlbum, setSelectedAlbum] = useState<string>("");
@@ -48,18 +47,25 @@ export default function Gallery({ title = "all", page }: Props) {
   }, []);
 
   useEffect(() => {
-    async function fetchImagesByTitle() {
-      const url = title !== "all"
-        ? `http://127.0.0.1:8000/images?title=${title}`
-        : "http://127.0.0.1:8000/images";
+    async function fetchImagesByAlbum() {
+      let url = "http://127.0.0.1:8000/images";
+      const params = new URLSearchParams();
+
+      if (selectedAlbum) {
+        url = `http://127.0.0.1:8000/albums/${selectedAlbum}/images`;
+      } else if (topic && topic !== "curated") {
+        params.append("title", topic);
+        url += `?${params.toString()}`;
+      }
+
       const response = await fetch(url);
       const imagesData = await response.json();
       const publicImages = imagesData.filter((image: Image) => image.public);
       setImages(publicImages);
     }
 
-    fetchImagesByTitle();
-  }, [title]);
+    fetchImagesByAlbum();
+  }, [selectedAlbum, topic]);
 
   return (
     <>

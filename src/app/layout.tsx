@@ -30,7 +30,9 @@ export default function Layout({
     setHideNavBar(
       pathname === "/login" ||
         pathname === "/register" ||
-        pathname === "/forgot-password"
+        pathname === "/forgot-password" ||
+        pathname === "/admin" ||
+        pathname === "/author"
     );
   }, [pathname]);
 

@@ -1,3 +1,5 @@
+// result/[...myParam]/page
+
 import Gallery from "@/app/components/Homepage/Gallery";
 
 type Props = {
@@ -19,5 +21,5 @@ export default function SearchResults({ params: { myParams } }: Props) {
   const title = myParams?.[0] ?? "all";
   const page = myParams?.[1] ?? "1";
 
-  return <Gallery title={title} page={page} />;
+  return <Gallery topic={title} page={page} />;
 }

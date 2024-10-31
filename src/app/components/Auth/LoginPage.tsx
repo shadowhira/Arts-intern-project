@@ -20,28 +20,37 @@ export default function LoginPage() {
           password: values.password,
         }),
       });
-  
+
       if (!response.ok) throw new Error("Login failed");
-  
-      const { accessToken, refreshToken, accessTokenExpiresIn, refreshTokenExpiresIn } = await response.json();
-  
+
+      const { accessToken, refreshToken, accessTokenExpiresIn, refreshTokenExpiresIn, roles } = await response.json();
+
       if (!accessToken || !refreshToken) {
         message.error("Sai email hoặc mật khẩu.");
         return;
       }
-  
+
       const accessTokenExpirationTime = new Date().getTime() + accessTokenExpiresIn * 1000;
       const accessTokenExpirationDate = new Date(accessTokenExpirationTime).toLocaleString();
       const refreshTokenExpirationTime = new Date().getTime() + refreshTokenExpiresIn * 1000;
       const refreshTokenExpirationDate = new Date(refreshTokenExpirationTime).toLocaleString();
-  
+
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("accessTokenExpirationDate", accessTokenExpirationDate);
       localStorage.setItem("refreshToken", refreshToken);
       localStorage.setItem("refreshTokenExpirationDate", refreshTokenExpirationDate);
-  
+      localStorage.setItem("roles", JSON.stringify(roles));
+
       message.success("Login successful!");
-      router.push("/profile");
+
+      // Điều hướng dựa trên vai trò của người dùng
+      if (roles.includes("admin")) {
+        router.push("/admin");
+      } else if (roles.includes("author")) {
+        router.push("/author");
+      } else {
+        router.push("/profile");
+      }
     } catch (error) {
       message.error((error as Error).message);
     } finally {

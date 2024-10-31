@@ -52,5 +52,6 @@ export const logout = () => {
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("accessTokenExpirationDate");
   localStorage.removeItem("refreshTokenExpirationDate");
+  localStorage.removeItem("roles");
   message.success("Logged out successfully.");
 };
