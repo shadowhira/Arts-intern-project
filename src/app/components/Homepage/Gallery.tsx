@@ -10,7 +10,7 @@ import Footer from "../Footer";
 import Filter from "./Filter";
 
 type Props = {
-  topic?: string;
+  title?: string;
   page?: string;
 };
 
@@ -31,7 +31,7 @@ type Album = {
   title: string;
 };
 
-export default function Gallery({ topic = "curated", page }: Props) {
+export default function Gallery({ title = "all", page }: Props) {
   const [images, setImages] = useState<Image[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [selectedAlbum, setSelectedAlbum] = useState<string>("");
@@ -48,9 +48,9 @@ export default function Gallery({ topic = "curated", page }: Props) {
   }, []);
 
   useEffect(() => {
-    async function fetchImagesByAlbum() {
-      const url = selectedAlbum
-        ? `http://127.0.0.1:8000/albums/${selectedAlbum}/images`
+    async function fetchImagesByTitle() {
+      const url = title !== "all"
+        ? `http://127.0.0.1:8000/images?title=${title}`
         : "http://127.0.0.1:8000/images";
       const response = await fetch(url);
       const imagesData = await response.json();
@@ -58,8 +58,8 @@ export default function Gallery({ topic = "curated", page }: Props) {
       setImages(publicImages);
     }
 
-    fetchImagesByAlbum();
-  }, [selectedAlbum]);
+    fetchImagesByTitle();
+  }, [title]);
 
   return (
     <>

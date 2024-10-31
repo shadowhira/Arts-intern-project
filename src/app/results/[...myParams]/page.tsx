@@ -7,17 +7,17 @@ type Props = {
 };
 
 export function generateMetadata({ params: { myParams } }: Props) {
-  const topic = myParams?.[0] ?? "curated";
+  const title = myParams?.[0] ?? "all";
   const page = myParams?.[1] ?? "1";
 
   return {
-    title: `Results for ${topic} - Page ${page}`,
+    title: `Results for "${title}" - Page ${page}`,
   };
 }
 
 export default function SearchResults({ params: { myParams } }: Props) {
-  const topic = myParams?.[0] ?? "curated";
+  const title = myParams?.[0] ?? "all";
   const page = myParams?.[1] ?? "1";
 
-  return <Gallery topic={topic} page={page} />;
+  return <Gallery title={title} page={page} />;
 }

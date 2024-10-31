@@ -18,7 +18,7 @@ export default function NavBar() {
         <Theme />
         <Notification />
         <UserInfo />
-        <Upload />
+        <Link href="/upload">Upload</Link>
       </nav>
     </header>
   );
