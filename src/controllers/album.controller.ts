@@ -34,7 +34,7 @@ export class AlbumController {
     public notificationService: NotificationService, // Inject NotificationService
   ) {}
 
-  // @authenticate('jwt')
+  @authenticate('jwt')
   // @intercept('user')
   @post('/albums')
   @response(200, {

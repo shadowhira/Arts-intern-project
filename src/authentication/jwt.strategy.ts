@@ -30,6 +30,7 @@ export class JWTStrategy implements AuthenticationStrategy {
 
     const userProfile: UserProfile = {
       [securityId]: payload.id.toString(),
+      id: payload.id,
       name: user.username, 
       email: payload.email,
       roles: payload.role,

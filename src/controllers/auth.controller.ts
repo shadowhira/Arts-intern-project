@@ -10,10 +10,10 @@ import {Request, RestBindings, HttpErrors} from '@loopback/rest';
 import multer from 'multer';
 
 const SECRET_KEY = 'jwt_secret';
-const ACCESS_EXPIRES_IN = '20s';
-const REFRESH_EXPIRES_IN = '10m';
-const ACCESS_TIME = 10;
-const REFRESH_TIME = 600;
+const ACCESS_EXPIRES_IN = '15m';
+const REFRESH_EXPIRES_IN = '2h';
+const ACCESS_TIME = 900;
+const REFRESH_TIME = 7200;
 
 const storage = multer.memoryStorage();
 const upload = multer({storage});

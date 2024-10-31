@@ -23,7 +23,7 @@ import {
 import {Image} from '../models';
 import {ImageRepository} from '../repositories';
 import {intercept, inject} from '@loopback/core';
-import {authenticate} from '@loopback/authentication';
+import {authenticate, UserService} from '@loopback/authentication';
 import {NotificationService} from '../services/notification.service';
 import multer from 'multer';
 import cloudinary from '../config/cloudinary.config';
@@ -59,7 +59,16 @@ export class ImageController {
               width: {type: 'number'}, // Add width field
               height: {type: 'number'}, // Add height field
             },
-            required: ['file', 'title', 'star', 'albumId', 'userId', 'public', 'width', 'height'],
+            required: [
+              'file',
+              'title',
+              'star',
+              'albumId',
+              'userId',
+              'public',
+              'width',
+              'height',
+            ],
           },
         },
       },
@@ -75,18 +84,27 @@ export class ImageController {
       height: number;
     },
   ): Promise<Image> {
-    const {file, title, star, albumId, userId, public: isPublic, width, height} = requestData;
-  
+    const {
+      file,
+      title,
+      star,
+      albumId,
+      userId,
+      public: isPublic,
+      width,
+      height,
+    } = requestData;
+
     if (!file) {
       throw new HttpErrors.BadRequest('No file uploaded');
     }
-  
+
     try {
       // Convert buffer to stream
       const bufferStream = new Readable();
       bufferStream.push(Buffer.from(file, 'base64'));
       bufferStream.push(null);
-  
+
       // Upload image to Cloudinary
       const result = await new Promise<any>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream((error, result) => {
@@ -95,7 +113,7 @@ export class ImageController {
         });
         bufferStream.pipe(stream);
       });
-  
+
       // Create image object with URL from Cloudinary
       const newImage = await this.imageRepository.create({
         title,
@@ -107,16 +125,18 @@ export class ImageController {
         width, // Save width
         height, // Save height
       });
-  
+
       // Send notification to followers
       await this.notificationService.notifyFollowersCreateNew(
         newImage.userId,
         'image',
       );
-  
+
       return newImage;
     } catch (error) {
-      throw new HttpErrors.BadRequest('Failed to create image: ' + error.message);
+      throw new HttpErrors.BadRequest(
+        'Failed to create image: ' + error.message,
+      );
     }
   }
 
