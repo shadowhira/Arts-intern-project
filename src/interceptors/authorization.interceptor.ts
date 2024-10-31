@@ -29,7 +29,6 @@ export class CheckAdminInterceptor implements Provider<Interceptor> {
       throw new Error('Token is undefined');
     }
     const payload: any = verify(token, SECRET_KEY);
-    console.log('User (interceptor): ', payload);
 
     const userId = payload.id;
 
@@ -60,7 +59,6 @@ export class CheckAuthorInterceptor implements Provider<Interceptor> {
       throw new Error('Token is undefined');
     }
     const payload: any = verify(token, SECRET_KEY);
-    console.log('User (interceptor): ', payload);
 
     const userId = payload.id;
 
@@ -91,7 +89,6 @@ export class CheckUserInterceptor implements Provider<Interceptor> {
       throw new Error('Token is undefined');
     }
     const payload: any = verify(token, SECRET_KEY);
-    console.log('User (interceptor): ', payload);
 
     const userId = payload.id;
 

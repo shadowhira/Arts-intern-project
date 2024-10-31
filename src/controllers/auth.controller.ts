@@ -102,6 +102,7 @@ export class AuthController {
         refreshToken: string;
         accessTokenExpiresIn: number;
         refreshTokenExpiresIn: number;
+        roles: string[];
       }
     | {success: boolean}
   > {
@@ -141,6 +142,7 @@ export class AuthController {
         refreshToken,
         accessTokenExpiresIn: ACCESS_TIME,
         refreshTokenExpiresIn: REFRESH_TIME,
+        roles: user.role || [],
       };
     } catch (error) {
       throw new HttpErrors.InternalServerError(error.message);
