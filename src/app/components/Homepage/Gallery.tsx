@@ -5,14 +5,16 @@ import addBlurredDataUrls from "@/lib/getBase64";
 import getPrevNextPages from "@/lib/getPrevNextPages";
 import Footer from "../Footer";
 import Filter from "./Filter";
+import { useState, useEffect } from "react";
 
 type Props = {
   topic?: string | undefined;
   page?: string | undefined;
 };
 
+
 export default async function Gallery({ topic = "curated", page }: Props) {
-  const url = `http://127.0.0.1:8000/images`;
+  const url = "http://127.0.0.1:8000/images";
 
   const response = await fetch(url);
   const images = await response.json();
@@ -33,7 +35,7 @@ export default async function Gallery({ topic = "curated", page }: Props) {
     <>
       <Filter />
       <section className="px-1 my-3 grid grid-cols-gallery auto-rows-[10px]">
-        {photosWithBlur.map((photo: any) => (
+        {publicImages.map((photo: any) => (
           <ImgContainer key={photo.id} photo={photo} />
         ))}
       </section>

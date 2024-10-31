@@ -13,26 +13,19 @@ type Props = {
     public: boolean;
     albumId: string;
     userId: string;
-    blurredDataUrl?: string;
+    width: number;
+    height: number;
   };
 };
 
 export default function ImgContainer({ photo }: Props) {
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const { width, height } = photo;
 
-  useEffect(() => {
-    const img = new window.Image();
-    img.src = photo.url;
-    img.onload = () => {
-      setDimensions({ width: img.width, height: img.height });
-    };
-  }, [photo.url]);
-
-  if (dimensions.width === 0 || dimensions.height === 0) {
-    return null; // Hoặc hiển thị một placeholder trong khi chờ lấy kích thước ảnh
+  if (!width || !height) {
+    return null; // Or display a placeholder while waiting for image dimensions
   }
 
-  const widthHeightRatio = dimensions.height / dimensions.width;
+  const widthHeightRatio = height / width;
   const galleryHeight = Math.ceil(250 * widthHeightRatio);
   const photoSpans = Math.ceil(galleryHeight / 10) + 1; // 10 pixel per row
 
@@ -41,18 +34,18 @@ export default function ImgContainer({ photo }: Props) {
       className="w-[250px] justify-self-center"
       style={{ gridRow: `span ${photoSpans}` }}
     >
-        <div className="rounded-xl overflow-hidden group">
-          <Image
-            src={photo.url}
-            alt={photo.title}
-            width={250}
-            height={galleryHeight}
-            sizes="250px"
-            placeholder="blur"
-            blurDataURL={photo.blurredDataUrl}
-            className="group-hover:opacity-75"
-          />
-        </div>
+      <div className="rounded-xl overflow-hidden group">
+        <Image
+          src={photo.url}
+          alt={photo.title}
+          width={250}
+          height={galleryHeight}
+          sizes="250px"
+          // placeholder="blur"
+          // blurDataURL={photo.blurredDataUrl}
+          className="group-hover:opacity-75"
+        />
+      </div>
     </div>
   );
 }

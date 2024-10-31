@@ -8,8 +8,8 @@ import UserInfo from "./NavBar/UserInfo";
 
 export default function NavBar() {
   return (
-    <header className="bg-black sticky top-0 z-10">
-      <nav className="flex flex-col gap-4 sm:flex-row sm:justify-between items-center p-4 font-bold max-w-6xl mx-auto text-white">
+    <header className="bg-slate-300 dark:bg-gray-800 sticky top-0 z-10">
+      <nav className="flex flex-col gap-4 sm:flex-row sm:justify-between items-center p-4 font-bold max-w-6xl mx-auto text-black dark:text-white">
         <SideBar />
         <h1 className="text-2xl sm:text-3xl text-center whitespace-nowrap">
           <Link href="/">Mom's Image Gallery</Link>
