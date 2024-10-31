@@ -35,6 +35,18 @@ export class Image extends Entity {
   })
   public: boolean;
 
+  @property({
+    type: 'number',
+    required: true,
+  })
+  width: number; // Thêm thuộc tính width
+
+  @property({
+    type: 'number',
+    required: true,
+  })
+  height: number; // Thêm thuộc tính height
+
   @belongsTo(() => Album)
   albumId: string;
 

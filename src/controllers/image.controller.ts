@@ -55,9 +55,11 @@ export class ImageController {
               star: {type: 'number'},
               albumId: {type: 'string'},
               userId: {type: 'string'},
-              public: {type: 'boolean'}, // Thêm trường public
+              public: {type: 'boolean'}, // Add public field
+              width: {type: 'number'}, // Add width field
+              height: {type: 'number'}, // Add height field
             },
-            required: ['file', 'title', 'star', 'albumId', 'userId', 'public'],
+            required: ['file', 'title', 'star', 'albumId', 'userId', 'public', 'width', 'height'],
           },
         },
       },
@@ -69,21 +71,23 @@ export class ImageController {
       albumId: string;
       userId: string;
       public: boolean;
+      width: number;
+      height: number;
     },
   ): Promise<Image> {
-    const {file, title, star, albumId, userId, public: isPublic} = requestData;
-
+    const {file, title, star, albumId, userId, public: isPublic, width, height} = requestData;
+  
     if (!file) {
       throw new HttpErrors.BadRequest('No file uploaded');
     }
-
+  
     try {
-      // Chuyển đổi buffer thành stream
+      // Convert buffer to stream
       const bufferStream = new Readable();
       bufferStream.push(Buffer.from(file, 'base64'));
       bufferStream.push(null);
-
-      // Upload ảnh lên Cloudinary
+  
+      // Upload image to Cloudinary
       const result = await new Promise<any>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream((error, result) => {
           if (error) reject(error);
@@ -91,26 +95,28 @@ export class ImageController {
         });
         bufferStream.pipe(stream);
       });
-
-      // Tạo đối tượng ảnh với URL từ Cloudinary
+  
+      // Create image object with URL from Cloudinary
       const newImage = await this.imageRepository.create({
         title,
         url: result.secure_url,
         star,
-        albumId, // Lưu albumId vào thuộc tính của ảnh
+        albumId, // Save albumId to image property
         userId,
-        public: isPublic, // Lưu giá trị public
+        public: isPublic, // Save public value
+        width, // Save width
+        height, // Save height
       });
-
-      // Gửi notification cho những người theo dõi
+  
+      // Send notification to followers
       await this.notificationService.notifyFollowersCreateNew(
         newImage.userId,
         'image',
       );
-
+  
       return newImage;
     } catch (error) {
-      throw new HttpErrors.BadRequest('Tạo mới ảnh thất bại: ' + error.message);
+      throw new HttpErrors.BadRequest('Failed to create image: ' + error.message);
     }
   }
 
