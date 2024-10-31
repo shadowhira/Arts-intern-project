@@ -1,45 +1,78 @@
+"use client";
+
+// components/Gallery.tsx
 import fetchImages from "@/lib/fetchImages";
 import ImgContainer from "./ImgContainer";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import addBlurredDataUrls from "@/lib/getBase64";
 import getPrevNextPages from "@/lib/getPrevNextPages";
 import Footer from "../Footer";
 import Filter from "./Filter";
-import { useState, useEffect } from "react";
 
 type Props = {
-  topic?: string | undefined;
-  page?: string | undefined;
+  topic?: string;
+  page?: string;
 };
 
+type Image = {
+  id: string;
+  title: string;
+  url: string;
+  star: number;
+  public: boolean;
+  albumId: string;
+  userId: string;
+  width: number;
+  height: number;
+};
 
-export default async function Gallery({ topic = "curated", page }: Props) {
-  const url = "http://127.0.0.1:8000/images";
+type Album = {
+  id: string;
+  title: string;
+};
 
-  const response = await fetch(url);
-  const images = await response.json();
+export default function Gallery({ topic = "curated", page }: Props) {
+  const [images, setImages] = useState<Image[]>([]);
+  const [albums, setAlbums] = useState<Album[]>([]);
+  const [selectedAlbum, setSelectedAlbum] = useState<string>("");
 
-  if (!images || images.length === 0)
-    return <h2 className="m-4 text-2xl font-bold">No Images Found</h2>;
+  useEffect(() => {
+    // Fetch albums to use for filtering
+    async function fetchAlbums() {
+      const response = await fetch("http://127.0.0.1:8000/albums");
+      const albumsData = await response.json();
+      setAlbums(albumsData);
+    }
 
-  // Lọc các ảnh có thuộc tính public là true
-  const publicImages = images.filter((image: any) => image.public);
+    fetchAlbums();
+  }, []);
 
-  const photosWithBlur = await addBlurredDataUrls(publicImages);
+  useEffect(() => {
+    async function fetchImagesByAlbum() {
+      const url = selectedAlbum
+        ? `http://127.0.0.1:8000/albums/${selectedAlbum}/images`
+        : "http://127.0.0.1:8000/images";
+      const response = await fetch(url);
+      const imagesData = await response.json();
+      const publicImages = imagesData.filter((image: Image) => image.public);
+      setImages(publicImages);
+    }
 
-  // calculate pagination
-  const { prevPage, nextPage } = getPrevNextPages(publicImages);
-  const footerProps = { topic, page, nextPage, prevPage };
+    fetchImagesByAlbum();
+  }, [selectedAlbum]);
 
   return (
     <>
-      <Filter />
+      <Filter
+        albums={albums}
+        selectedAlbum={selectedAlbum}
+        onAlbumChange={(albumId) => setSelectedAlbum(albumId)}
+      />
       <section className="px-1 my-3 grid grid-cols-gallery auto-rows-[10px]">
-        {publicImages.map((photo: any) => (
+        {images.map((photo) => (
           <ImgContainer key={photo.id} photo={photo} />
         ))}
       </section>
-      <Footer {...footerProps} />
     </>
   );
 }
