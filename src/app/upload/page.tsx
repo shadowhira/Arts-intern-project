@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Form, Input, Upload, Button, message, Select, Modal } from "antd";
 import { UploadOutlined, PlusOutlined } from "@ant-design/icons";
 import type { RcFile, UploadFile } from "antd/es/upload/interface";
+import { getAccessToken, logout } from "../../lib/auth";
 
 const { Option } = Select;
 
@@ -12,12 +13,24 @@ export default function UploadPage() {
   const [selectedAlbum, setSelectedAlbum] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newAlbumTitle, setNewAlbumTitle] = useState("");
+  const [currentUserId, setCurrentUserId] = useState("");
 
   useEffect(() => {
     // Fetch albums from API
     const fetchAlbums = async () => {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        message.warning("Session expired. Please log in again.");
+        logout();
+        return;
+      }
+
       try {
-        const response = await fetch("http://127.0.0.1:8000/albums");
+        const response = await fetch("http://127.0.0.1:8000/albums", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
         const data = await response.json();
         setAlbums(data);
       } catch (error) {
@@ -28,54 +41,92 @@ export default function UploadPage() {
     fetchAlbums();
   }, []);
 
+  useEffect(() => {
+    // Fetch current user from API
+    const fetchCurrentUser = async () => {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        message.warning("Session expired. Please log in again.");
+        logout();
+        return;
+      }
+
+      try {
+        console.log("hihihi");
+        const response = await fetch("http://127.0.0.1:8000/me", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch current user");
+        }
+        const data = await response.json();
+        setCurrentUserId(data.id);
+      } catch (error) {
+        console.error("Failed to fetch current user:", error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
   const handleUpload = async (values: { title: string; public: boolean }) => {
     if (fileList.length === 0) {
       message.warning("Please select a photo to upload.");
       return;
     }
-  
+
     if (!selectedAlbum) {
       message.warning("Please select an album.");
       return;
     }
-  
+
     const file = fileList[0].originFileObj as RcFile;
     const reader = new FileReader();
-  
+
     reader.onloadend = async () => {
       const base64File = reader.result as string;
-  
+
       // Create an image element to get dimensions
       const img = new Image();
       img.src = base64File;
       img.onload = async () => {
         const width = img.width;
         const height = img.height;
-  
+
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+          message.warning("Session expired. Please log in again.");
+          logout();
+          return;
+        }
+
         try {
           const response = await fetch("http://127.0.0.1:8000/images", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({
               title: values.title,
               file: base64File.split(",")[1], // Remove "data:image/jpeg;base64,"
               star: 0,
               albumId: selectedAlbum,
-              userId: "671a0078324b3e492878c6bb", // Replace with actual userId
+              userId: currentUserId, // Use current userId
               public: values.public, // Add public field
               width, // Add width
               height, // Add height
             }),
           });
-  
+
           if (!response.ok) {
             const errorData = await response.json();
             console.error("Error response:", errorData);
             throw new Error("Failed to upload");
           }
-  
+
           message.success("Upload successful!");
         } catch (error) {
           console.error("Upload failed:", error);
@@ -83,7 +134,7 @@ export default function UploadPage() {
         }
       };
     };
-  
+
     reader.readAsDataURL(file);
   };
 
@@ -104,15 +155,23 @@ export default function UploadPage() {
   };
 
   const handleOk = async () => {
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+      message.warning("Session expired. Please log in again.");
+      logout();
+      return;
+    }
+
     try {
       const response = await fetch("http://127.0.0.1:8000/albums", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           title: newAlbumTitle,
-          userId: "671a0078324b3e492878c6bb", // Thay bằng userId thực tế
+          userId: currentUserId, // Use current userId
         }),
       });
 

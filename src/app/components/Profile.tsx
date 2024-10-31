@@ -2,48 +2,44 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { message, Button } from "antd";
-import { getAccessToken } from '../../lib/auth';
+import { getAccessToken, logout } from '../../lib/auth';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
-  
+
   useEffect(() => {
     const fetchUserData = async () => {
       const accessToken = await getAccessToken();
-  
+
       if (!accessToken) {
         message.warning("Phiên đăng nhập đã hết, vui lòng đăng nhập lại.");
         router.push("/login");
         return;
       }
-  
+
       try {
         const response = await fetch("http://localhost:8000/me", {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-  
+
         if (!response.ok) {
-          throw new Error("Phiên đăng nhập đã hết, vui lòng đăng nhập lại.");
+          throw new Error("Không lấy được thông tin từ jwt.");
         }
-  
+
         const data = await response.json();
         setUser(data);
-      } catch (error) {
-        message.error("Phiên đăng nhập đã hết, vui lòng đăng nhập lại.");
+      } catch (error: any) {
+        message.error("Lỗi khi lấy thông tin người dùng: " + error.message);
         router.push("/login");
       }
     };
-  
+
     fetchUserData();
-  }, [router]);  
+  }, [router]);
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("accessTokenExpirationDate");
-    localStorage.removeItem("refreshTokenExpirationDate");
-    message.success("Logged out successfully.");
+    logout();
     router.push("/login");
   };
 

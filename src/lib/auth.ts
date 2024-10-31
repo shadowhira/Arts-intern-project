@@ -1,3 +1,5 @@
+import { message } from "antd";
+
 export const isAccessTokenExpired = () => {
   const expirationTime = localStorage.getItem("accessTokenExpiration");
   if (!expirationTime) return true;
@@ -37,13 +39,18 @@ export const getAccessToken = async () => {
       return newAccessToken;
     } catch (error) {
       console.error("Failed to refresh access token:", error);
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("accessTokenExpirationDate");
-      localStorage.removeItem("refreshTokenExpirationDate");
+      logout();
       return null;
     }
   }
 
   return accessToken;
+};
+
+export const logout = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("accessTokenExpirationDate");
+  localStorage.removeItem("refreshTokenExpirationDate");
+  message.success("Logged out successfully.");
 };
