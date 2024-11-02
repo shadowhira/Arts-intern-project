@@ -7,7 +7,6 @@ import {authenticate} from '@loopback/authentication';
 import {UserProfile, SecurityBindings, securityId} from '@loopback/security';
 import {inject} from '@loopback/core';
 import {Request, RestBindings, HttpErrors} from '@loopback/rest';
-import multer from 'multer';
 
 const SECRET_KEY = 'jwt_secret';
 const ACCESS_EXPIRES_IN = '15m';
@@ -15,8 +14,6 @@ const REFRESH_EXPIRES_IN = '2h';
 const ACCESS_TIME = 900;
 const REFRESH_TIME = 7200;
 
-const storage = multer.memoryStorage();
-const upload = multer({storage});
 export class AuthController {
   constructor(
     @repository(UserRepository)
@@ -234,7 +231,7 @@ export class AuthController {
     }) body: {refreshToken: string},
   ): Promise<{accessToken: string; accessTokenExpiresIn: number}> {
     const {refreshToken} = body;
-    
+
     try {
       const payload = jwt.verify(refreshToken, SECRET_KEY) as any;
       const accessToken = jwt.sign(
