@@ -38,7 +38,7 @@ export const getAccessToken = async () => {
 
       return newAccessToken;
     } catch (error) {
-      console.error("Failed to refresh access token:", error);
+      message.error("Failed to refresh access token: " + error);
       logout();
       return null;
     }

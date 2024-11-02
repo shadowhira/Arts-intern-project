@@ -18,6 +18,14 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
+const hiddenNavBarPaths = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/admin",
+  "/author",
+];
+
 export default function Layout({
   children,
 }: Readonly<{
@@ -27,13 +35,7 @@ export default function Layout({
   const [hideNavBar, setHideNavBar] = useState(false);
 
   useEffect(() => {
-    setHideNavBar(
-      pathname === "/login" ||
-        pathname === "/register" ||
-        pathname === "/forgot-password" ||
-        pathname === "/admin" ||
-        pathname === "/author"
-    );
+    setHideNavBar(hiddenNavBarPaths.includes(pathname));
   }, [pathname]);
 
   return (

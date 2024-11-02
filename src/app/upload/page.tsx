@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { message } from "antd";
 import { getAccessToken, logout } from "../../lib/auth";
 import UploadComponent from "../components/NavBar/Upload";
@@ -7,6 +8,7 @@ import UploadComponent from "../components/NavBar/Upload";
 export default function UploadPage() {
   const [albums, setAlbums] = useState<{ id: string; title: string }[]>([]);
   const [currentUserId, setCurrentUserId] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     // Fetch albums from API
@@ -40,6 +42,7 @@ export default function UploadPage() {
       const accessToken = await getAccessToken();
       if (!accessToken) {
         message.warning("Session expired. Please log in again.");
+        router.push('/login');
         logout();
         return;
       }
@@ -56,7 +59,7 @@ export default function UploadPage() {
         const data = await response.json();
         setCurrentUserId(data.id);
       } catch (error) {
-        console.error("Failed to fetch current user:", error);
+        message.error("Failed to fetch current user:" + error);
       }
     };
 

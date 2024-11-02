@@ -17,25 +17,16 @@ export default function Filter({
   selectedAlbum,
   onAlbumChange,
 }: FilterProps) {
+  const allAlbums = [{ id: "", title: "All" }, ...albums]; 
+
   return (
     <div className="flex space-x-4 p-4">
-      <button
-        onClick={() => onAlbumChange("")}
-        className={`px-4 py-2 text-sm rounded ${
-          selectedAlbum === "" ? "bg-blue-500 text-white" : "bg-gray-200"
-        }`}
-      >
-        All
-      </button>
-
-      {albums.map((album) => (
+      {allAlbums.map((album) => (
         <button
           key={album.id}
           onClick={() => onAlbumChange(album.id)}
           className={`px-4 py-2 text-sm rounded ${
-            selectedAlbum === album.id
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200"
+            selectedAlbum === album.id ? "bg-blue-500 text-white" : "bg-gray-200"
           }`}
         >
           {album.title}

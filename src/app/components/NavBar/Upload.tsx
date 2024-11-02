@@ -135,7 +135,6 @@ export default function UploadComponent({
       setSelectedAlbum(newAlbum.id);
       message.success("Album created successfully!");
     } catch (error) {
-      console.error("Failed to create album:", error);
       message.error("Failed to create album. Please try again.");
     }
 
