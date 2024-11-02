@@ -10,6 +10,7 @@ import {
   get,
   getModelSchemaRef,
   getWhereSchemaFor,
+  HttpErrors,
   param,
   patch,
   post,
@@ -41,8 +42,25 @@ export class AlbumImageController {
   async find(
     @param.path.string('id') id: string,
     @param.query.object('filter') filter?: Filter<Image>,
+    @param.query.boolean('publicOnly') publicOnly?: boolean, 
   ): Promise<Image[]> {
-    return this.albumRepository.images(id).find(filter);
+    try {
+      const whereFilter: any = {};
+
+      if (publicOnly) {
+        whereFilter.public = true;
+      }
+
+      const finalFilter = {
+        ...filter,
+        where: {...whereFilter, ...(filter?.where || {})},
+        include: [{relation: 'user'}], 
+      };
+
+      return this.albumRepository.images(id).find(finalFilter);
+    } catch (error) {
+      throw new HttpErrors.InternalServerError('Tìm hình ảnh thất bại.');
+    }
   }
 
   @post('/albums/{id}/images', {

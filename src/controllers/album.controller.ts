@@ -62,10 +62,6 @@ export class AlbumController {
   ): Promise<Album> {
     const {title, userId} = requestData;
   
-    if (!title || !userId) {
-      throw new HttpErrors.BadRequest('Title and UserId are required');
-    }
-  
     try {
       // Tạo album mới
       const newAlbum = await this.albumRepository.create({title, userId});

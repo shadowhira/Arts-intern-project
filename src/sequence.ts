@@ -32,20 +32,8 @@ export class MySequence implements SequenceHandler {
   async handle(context: RequestContext) {
     const {request, response} = context;
 
-    // Thiết lập cấu hình multer cho upload hình ảnh
-    const storage = multer.memoryStorage();
-    const upload = multer({storage});
-    if (request.method === 'POST' && request.url === '/images') {
-      await new Promise<void>((resolve, reject) => {
-        upload.single('file')(request, response, (err: any) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-    }
-
     // CORS setup
-    response.header('Access-Control-Allow-Origin', 'http://127.0.0.1:3000');
+    response.header('Access-Control-Allow-Origin', ['http://127.0.0.1:3000']);
     response.header(
       'Access-Control-Allow-Methods',
       'GET,POST,PUT,PATCH,DELETE',

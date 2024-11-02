@@ -56,10 +56,7 @@ export class AuthController {
     }) body: {email: string},
   ): Promise<{exists: boolean}> {
     const {email} = body;
-    if (!email) {
-      throw new HttpErrors.BadRequest('Email is required');
-    }
-  
+
     try {
       const user = await this.userRepository.findOne({where: {email}});
       return {exists: !!user};
@@ -107,9 +104,7 @@ export class AuthController {
     | {success: boolean}
   > {
     const {email, password} = credentials;
-    if (!email || !password) {
-      throw new HttpErrors.BadRequest('Username and password are required');
-    }
+
     try {
       const user = await this.userRepository.findOne({
         where: {email},
@@ -182,9 +177,6 @@ export class AuthController {
     }) body: {username: string; password: string; email: string},
   ): Promise<{success: boolean; message: string}> {
     const {username, password, email} = body;
-    if (!username || !password || !email) {
-      throw new HttpErrors.BadRequest('Missing required fields');
-    }
   
     // Check if email already exists
     const existingUser = await this.userRepository.findOne({
@@ -242,10 +234,7 @@ export class AuthController {
     }) body: {refreshToken: string},
   ): Promise<{accessToken: string; accessTokenExpiresIn: number}> {
     const {refreshToken} = body;
-    if (!refreshToken) {
-      throw new HttpErrors.BadRequest('Refresh token is required');
-    }
-  
+    
     try {
       const payload = jwt.verify(refreshToken, SECRET_KEY) as any;
       const accessToken = jwt.sign(

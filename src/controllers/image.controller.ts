@@ -55,9 +55,9 @@ export class ImageController {
               star: {type: 'number'},
               albumId: {type: 'string'},
               userId: {type: 'string'},
-              public: {type: 'boolean'}, // Add public field
-              width: {type: 'number'}, // Add width field
-              height: {type: 'number'}, // Add height field
+              public: {type: 'boolean'},
+              width: {type: 'number'},
+              height: {type: 'number'},
             },
             required: [
               'file',
@@ -95,10 +95,6 @@ export class ImageController {
       height,
     } = requestData;
 
-    if (!file) {
-      throw new HttpErrors.BadRequest('No file uploaded');
-    }
-
     try {
       // Convert buffer to stream
       const bufferStream = new Readable();
@@ -119,11 +115,11 @@ export class ImageController {
         title,
         url: result.secure_url,
         star,
-        albumId, // Save albumId to image property
+        albumId, 
         userId,
-        public: isPublic, // Save public value
-        width, // Save width
-        height, // Save height
+        public: isPublic, 
+        width,
+        height, 
       });
 
       // Send notification to followers
@@ -168,20 +164,30 @@ export class ImageController {
   async find(
     @param.filter(Image) filter?: Filter<Image>,
     @param.query.string('title') title?: string,
+    @param.query.boolean('publicOnly') publicOnly?: boolean,
   ): Promise<Image[]> {
     try {
-      if (title) {
-        return this.imageRepository.find({
-          where: {
-            title: {like: title, options: 'i'}, // Case-insensitive search
-          },
-        });
+      const whereFilter: any = {};
+  
+      if (publicOnly) {
+        whereFilter.public = true;
       }
-      return this.imageRepository.find(filter);
+  
+      if (title) {
+        whereFilter.title = {like: title, options: 'i'};
+      }
+  
+      const finalFilter = {
+        ...filter,
+        where: {...whereFilter, ...(filter?.where || {})},
+        include: [{relation: 'user'}], 
+      };
+  
+      return this.imageRepository.find(finalFilter);
     } catch (error) {
       throw new HttpErrors.InternalServerError('Tìm hình ảnh thất bại.');
     }
-  }
+  }  
 
   @authenticate('jwt')
   @intercept('admin')
