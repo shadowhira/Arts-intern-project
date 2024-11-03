@@ -8,13 +8,10 @@ const Logout: React.FC = () => {
     const router = useRouter();
 
     useEffect(() => {
-        // Clear local storage
         localStorage.clear();
 
-        // Call logout function from auth library
         logout();
 
-        // Redirect to login page
         router.push('/login');
     }, [router]);
 

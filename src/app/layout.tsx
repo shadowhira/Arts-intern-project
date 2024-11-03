@@ -6,6 +6,8 @@ import "./globals.css";
 import NavBar from "./components/NavBar";
 import { usePathname } from "next/navigation";
 import { Providers } from "./providers";
+import { store } from "../redux/store";
+import { Provider } from "react-redux";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -22,8 +24,8 @@ const hiddenNavBarPaths = [
   "/login",
   "/register",
   "/forgot-password",
-  "/admin",
-  "/author",
+  // "/admin",
+  // "/author",
 ];
 
 export default function Layout({
@@ -43,10 +45,12 @@ export default function Layout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>
-          {!hideNavBar && <NavBar />}
-          <main className="max-w-6xl mx-auto">{children}</main>
-        </Providers>
+        <Provider store={store}>
+          <Providers>
+            {!hideNavBar && <NavBar />}
+            <main className="max-w-6xl mx-auto">{children}</main>
+          </Providers>
+        </Provider>
       </body>
     </html>
   );

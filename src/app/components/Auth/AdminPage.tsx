@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Modal, Form, Input, Select, message, Spin } from "antd";
 import { getAccessToken, logout } from "../../../lib/auth";
-
+import { useRouter } from 'next/navigation';
 interface User {
   id: string;
   username: string;
@@ -23,11 +23,14 @@ const AdminPage: React.FC = () => {
     fetchUsers();
   }, []);
 
+  const router = useRouter();
+
   const fetchUsers = async () => {
     const accessToken = await getAccessToken();
     if (!accessToken) {
       message.warning("Session expired. Please log in again.");
       logout();
+      router.push('/login');
       return;
     }
 

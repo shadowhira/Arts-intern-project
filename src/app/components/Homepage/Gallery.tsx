@@ -3,6 +3,18 @@
 import ImgContainer from "./ImgContainer";
 import React, { useState, useEffect } from "react";
 import Filter from "./Filter";
+import { Table, Button, Modal, Form, Input, Select, message, Spin } from "antd";
+import { getAccessToken, logout } from "../../../lib/auth";
+
+const fetchUsers = async () => {
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    message.warning("Session expired. Please log in again.");
+    logout();
+    return;
+  }
+}
+fetchUsers();
 
 type Image = {
   id: string;

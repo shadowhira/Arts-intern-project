@@ -42,15 +42,16 @@ export default function LoginPage() {
       localStorage.setItem("roles", JSON.stringify(roles));
 
       message.success("Login successful!");
-
+      
+      router.push("/profile");
       // Điều hướng dựa trên vai trò của người dùng
-      if (roles.includes("admin")) {
-        router.push("/admin");
-      } else if (roles.includes("author")) {
-        router.push("/author");
-      } else {
-        router.push("/profile");
-      }
+      // if (roles.includes("admin")) {
+      //   router.push("/admin");
+      // } else if (roles.includes("author")) {
+      //   router.push("/author");
+      // } else {
+      //   router.push("/profile");
+      // }
     } catch (error) {
       message.error((error as Error).message);
     } finally {
