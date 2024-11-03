@@ -91,7 +91,7 @@ export class UserController {
   }
 
   @authenticate('jwt')
-  @intercept('admin')
+  @intercept('author')
   @get('/users')
   @response(200, {
     description: 'Array of User model instances',

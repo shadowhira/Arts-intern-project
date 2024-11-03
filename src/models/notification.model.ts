@@ -9,6 +9,7 @@ export class Notification extends Entity {
     generated: true,
   })
   id?: string;
+
   @property({
     type: 'string',
     required: true,
@@ -33,8 +34,15 @@ export class Notification extends Entity {
   })
   actionType: 'album' | 'image' | 'follow';
 
+  @property({
+    type: 'boolean',
+    default: false,
+  })
+  seen: boolean;
+
   @belongsTo(() => User)
   userId: string;
+
   // Define well-known properties here
 
   // Indexer property to allow additional data
