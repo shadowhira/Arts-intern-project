@@ -21,7 +21,6 @@ export default function NavBar() {
           <Search />
           <Theme />
           <Notification />
-          <UserInfo />
           <Link href="/upload">Upload</Link>
           <Logout />
         </div>
