@@ -88,13 +88,22 @@ export class NotificationController {
   })
   async find(
     @param.filter(Notification) filter?: Filter<Notification>,
+    @param.query.string('userId') userId?: string,
   ): Promise<Notification[]> {
     try {
+      if (userId) {
+        filter = filter ?? {};
+        filter.where = {
+          ...filter.where,
+          receiverId: userId, 
+        };
+      }
+  
       return this.notificationRepository.find(filter);
     } catch (error) {
       throw new HttpErrors.BadRequest('Lấy thông báo thất bại.');
     }
-  }
+  }  
 
   @authenticate('jwt')
   @intercept('admin')
@@ -195,6 +204,52 @@ export class NotificationController {
       await this.notificationRepository.deleteById(id);
     } catch (error) {
       throw new HttpErrors.BadRequest('Xóa thông báo thất bại.');
+    }
+  }
+
+  // API để lấy thông báo chưa đọc của người dùng
+  @authenticate('jwt')
+  @get('/notifications/unread/{userId}')
+  @response(200, {
+    description: 'Array of unread Notification model instances',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'array',
+          items: getModelSchemaRef(Notification, {includeRelations: true}),
+        },
+      },
+    },
+  })
+  async findUnread(
+    @param.path.string('userId') userId: string,
+  ): Promise<Notification[]> {
+    try {
+      const filter: Filter<Notification> = {
+        where: {
+          receiverId: userId,
+          seen: false,
+        },
+      };
+      return this.notificationRepository.find(filter);
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Lấy thông báo chưa đọc thất bại.');
+    }
+  }
+
+  // API để đánh dấu thông báo là đã đọc
+  @authenticate('jwt')
+  @patch('/notifications/mark-as-read/{id}')
+  @response(204, {
+    description: 'Notification marked as read',
+  })
+  async markAsRead(
+    @param.path.string('id') id: string,
+  ): Promise<void> {
+    try {
+      await this.notificationRepository.updateById(id, {seen: true});
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Đánh dấu thông báo đã đọc thất bại.');
     }
   }
 }

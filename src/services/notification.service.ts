@@ -21,7 +21,7 @@ export class NotificationService {
   ): Promise<void> {
     // Tìm tất cả người đang follow userId
     const followers = await this.followRepository.find({
-      where: {followerId: userId},
+      where: {followingId: userId},
     });
 
     const user = await this.userRepository.findById(userId);
@@ -61,7 +61,7 @@ export class NotificationService {
     const image = await this.imageRepository.findById(imageId);
 
     const notification = {
-      senderId: 'system',
+      senderId: 'Author',
       receiverId: userId,
       message: `Hình ảnh ${image.title} đã được phê duyệt.`,
       actionType: 'image_approved' as 'image_approved',
@@ -76,7 +76,7 @@ export class NotificationService {
     const image = await this.imageRepository.findById(imageId);
 
     const notification = {
-      senderId: 'system',
+      senderId: 'Author',
       receiverId: userId,
       message: `Hình ảnh ${image.title} đã bị từ chối.`,
       actionType: 'image_rejected' as 'image_rejected',

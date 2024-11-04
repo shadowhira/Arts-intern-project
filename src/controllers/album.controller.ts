@@ -110,18 +110,22 @@ export class AlbumController {
   })
   async find(
     @param.filter(Album) filter?: Filter<Album>,
-    @param.query.string('userId') userId?: string, // Lấy userId từ query string
+    @param.query.string('userId') userId?: string, 
   ): Promise<Album[]> {
     try {
-      // Nếu userId có trong query, áp dụng filter với userId
+      const whereFilter: any = {};
+
       if (userId) {
-        filter = filter || {};
-        filter.where = {
-          ...filter.where,
-          userId: userId, // Thêm điều kiện where cho userId
-        };
+        whereFilter.userId = userId;
       }
-      return this.albumRepository.find(filter);
+      
+      const finalFilter = {
+        ...filter,
+        where: {...whereFilter, ...(filter?.where || {})},
+        include: [{relation: 'images'},],
+      };
+
+      return this.albumRepository.find(finalFilter);
     } catch (error) {
       throw new HttpErrors.InternalServerError(
         'Lỗi khi truy vấn danh sách album.',
@@ -222,7 +226,7 @@ export class AlbumController {
   }
 
   @authenticate('jwt')
-  @intercept('admin')
+  @intercept('user')
   @del('/albums/{id}')
   @response(204, {
     description: 'Album DELETE success',
