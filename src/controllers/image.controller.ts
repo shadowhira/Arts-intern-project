@@ -299,8 +299,9 @@ export class ImageController {
   @authenticate('jwt')
   @intercept('user')
   @patch('/images/{id}')
-  @response(204, {
+  @response(200, {
     description: 'Image PATCH success',
+    content: {'application/json': {schema: getModelSchemaRef(Image)}},
   })
   async updateById(
     @param.path.string('id') id: string,
@@ -312,9 +313,11 @@ export class ImageController {
       },
     })
     image: Image,
-  ): Promise<void> {
+  ): Promise<Image> {
     try {
       await this.imageRepository.updateById(id, image);
+      const updatedImage = await this.imageRepository.findById(id);
+      return updatedImage;
     } catch (error) {
       throw new HttpErrors.BadRequest('Cập nhật ảnh thất bại.');
     }

@@ -43,12 +43,17 @@ export class AlbumImageController {
     @param.path.string('id') id: string,
     @param.query.object('filter') filter?: Filter<Image>,
     @param.query.boolean('publicOnly') publicOnly?: boolean, 
+    @param.query.string('status') status?: string,
   ): Promise<Image[]> {
     try {
       const whereFilter: any = {};
 
       if (publicOnly) {
         whereFilter.public = true;
+      }
+
+      if (status) {
+        whereFilter.status = status;
       }
 
       const finalFilter = {
