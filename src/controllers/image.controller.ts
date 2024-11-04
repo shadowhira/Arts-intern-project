@@ -208,14 +208,16 @@ export class ImageController {
     @param.query.string('userId') userId?: string,
     @param.query.string('albumId') albumId?: string,
     @param.query.string('status') status?: string,
+    @param.query.number('page') page: number = 1,   
+    @param.query.number('limit') limit: number = 10,
   ): Promise<Image[]> {
     try {
       const whereFilter: any = {};
-  
+
       if (publicOnly) {
         whereFilter.public = true;
       }
-  
+
       if (title) {
         whereFilter.title = {like: title, options: 'i'};
       }
@@ -231,18 +233,22 @@ export class ImageController {
       if (status) {
         whereFilter.status = status;
       }
-  
+
+      const skip = (page - 1) * limit;
+
       const finalFilter = {
         ...filter,
         where: {...whereFilter, ...(filter?.where || {})},
         include: [{relation: 'user'}, {relation: 'album'}],
+        limit,
+        skip,
       };
-  
+
       return this.imageRepository.find(finalFilter);
     } catch (error) {
       throw new HttpErrors.InternalServerError('Tìm hình ảnh thất bại.');
     }
-  }  
+  }
 
   @authenticate('jwt')
   @intercept('admin')
