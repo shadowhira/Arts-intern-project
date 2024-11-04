@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Upload, Button, Modal, Form, Input, Select, message } from "antd";
+import { Upload, Button, Modal, Form, Input, Select, Switch, message } from "antd";
 import { UploadOutlined } from '@ant-design/icons';
 import { getAccessToken } from '../../../lib/auth';
 import UploadComponent from '../NavBar/Upload'; // Import UploadComponent
@@ -46,39 +46,17 @@ export default function ImageManager({ userId }: ImageManagerProps) {
     fetchImages();
   }, [userId, selectedAlbum]);
 
-  const handleUpload = async (file: any) => {
-    const accessToken = await getAccessToken();
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await fetch("http://127.0.0.1:8000/images", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: formData,
-    });
-
-    if (response.ok) {
-      const newImage = await response.json();
-      setImages([...images, newImage]);
-      message.success("Ảnh đã được tải lên.");
-    } else {
-      message.error("Tải lên ảnh thất bại.");
-    }
-  };
-
   const handleEditImage = async (values: any) => {
     const accessToken = await getAccessToken();
     const response = await fetch(`http://127.0.0.1:8000/images/${editingImage.id}`, {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(values),
     });
-
+  
     if (response.ok) {
       const updatedImage = await response.json();
       setImages(images.map(img => img.id === updatedImage.id ? updatedImage : img));
@@ -127,7 +105,7 @@ export default function ImageManager({ userId }: ImageManagerProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
         {images.map(image => (
           <div key={image.id} className="relative group border rounded overflow-hidden">
-            <img src={image.url} alt={image.name} className="w-full h-48 object-cover" />
+            <img src={image.url} alt={image.title} className="w-full h-48 object-cover" />
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button className="mr-2" onClick={() => { setEditingImage(image); setIsEditModalVisible(true); }}>Edit</Button>
               <Button onClick={() => handleDeleteImage(image.id)}>Delete</Button>
@@ -143,11 +121,11 @@ export default function ImageManager({ userId }: ImageManagerProps) {
         footer={null}
       >
         <Form initialValues={editingImage} onFinish={handleEditImage}>
-          <Form.Item name="name" label="Name">
+          <Form.Item name="title" label="Title">
             <Input />
           </Form.Item>
-          <Form.Item name="description" label="Description">
-            <Input />
+          <Form.Item name="public" label="Public" valuePropName="checked">
+            <Switch />
           </Form.Item>
           <Button type="primary" htmlType="submit">
             Save

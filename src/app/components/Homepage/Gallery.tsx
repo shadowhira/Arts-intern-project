@@ -26,6 +26,7 @@ type Image = {
   userId: string;
   width: number;
   height: number;
+  status: string;
   user: {
     id: string;
     username: string;
@@ -58,13 +59,13 @@ export default function Gallery() {
 
   useEffect(() => {
     async function fetchImagesByAlbum() {
-      let url = "http://127.0.0.1:8000/images";
+      let url = "http://127.0.0.1:8000/images?public=true&status=approved";
 
       if (selectedAlbum) {
-        url = `http://127.0.0.1:8000/albums/${selectedAlbum}/images`;
+        url = `http://127.0.0.1:8000/albums/${selectedAlbum}/images?public=true&status=approved`;
       }
 
-      const response = await fetch(`${url}?publicOnly=true`);
+      const response = await fetch(url);
       const publicImages = await response.json();
       setImages(publicImages);
     }
