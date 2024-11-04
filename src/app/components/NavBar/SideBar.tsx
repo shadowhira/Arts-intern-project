@@ -7,6 +7,7 @@ import {
   SettingOutlined,
   EditOutlined,
   MenuOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import "tailwindcss/tailwind.css";
@@ -62,6 +63,15 @@ export default function SideBar() {
               >
                 <EditOutlined className="text-xl" />
                 <span className="ml-4">Trang author</span>
+              </button>
+            )}
+            {isAuthor && (
+              <button
+                className="flex items-center p-2 hover:bg-gray-700 rounded w-full text-left"
+                onClick={() => handleNavigation("/approve")}
+              >
+                <CheckCircleOutlined className="text-xl" />
+                <span className="ml-4">Trang phê duyệt</span>
               </button>
             )}
           </div>
