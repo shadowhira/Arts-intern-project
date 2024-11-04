@@ -8,13 +8,20 @@ interface ImageManagerProps {
   userId: number;
 }
 
+interface Image {
+  id: string;
+  url: string;
+  title: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
+
 export default function ImageManager({ userId }: ImageManagerProps) {
-  const [images, setImages] = useState<any[]>([]);
+  const [images, setImages] = useState<Image[]>([]);
   const [albums, setAlbums] = useState<any[]>([]);
   const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isUploadModalVisible, setIsUploadModalVisible] = useState(false); // State for upload modal
-  const [editingImage, setEditingImage] = useState<any>(null);
+  const [editingImage, setEditingImage] = useState<Image | null>(null);
 
   useEffect(() => {
     const fetchAlbums = async () => {
@@ -48,7 +55,7 @@ export default function ImageManager({ userId }: ImageManagerProps) {
 
   const handleEditImage = async (values: any) => {
     const accessToken = await getAccessToken();
-    const response = await fetch(`http://127.0.0.1:8000/images/${editingImage.id}`, {
+    const response = await fetch(`http://127.0.0.1:8000/images/${editingImage?.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -56,7 +63,7 @@ export default function ImageManager({ userId }: ImageManagerProps) {
       },
       body: JSON.stringify(values),
     });
-  
+
     if (response.ok) {
       const updatedImage = await response.json();
       setImages(images.map(img => img.id === updatedImage.id ? updatedImage : img));
@@ -67,7 +74,7 @@ export default function ImageManager({ userId }: ImageManagerProps) {
     }
   };
 
-  const handleDeleteImage = async (id: number) => {
+  const handleDeleteImage = async (id: string) => {
     const accessToken = await getAccessToken();
     const response = await fetch(`http://127.0.0.1:8000/images/${id}`, {
       method: "DELETE",
@@ -82,6 +89,11 @@ export default function ImageManager({ userId }: ImageManagerProps) {
     } else {
       message.error("Xóa ảnh thất bại.");
     }
+  };
+
+  const handleUploadSuccess = (newImage: Image) => {
+    setImages([...images, newImage]);
+    setIsUploadModalVisible(false);
   };
 
   return (
@@ -103,15 +115,28 @@ export default function ImageManager({ userId }: ImageManagerProps) {
         Upload
       </Button>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
-        {images.map(image => (
-          <div key={image.id} className="relative group border rounded overflow-hidden">
-            <img src={image.url} alt={image.title} className="w-full h-48 object-cover" />
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button className="mr-2" onClick={() => { setEditingImage(image); setIsEditModalVisible(true); }}>Edit</Button>
-              <Button onClick={() => handleDeleteImage(image.id)}>Delete</Button>
+        {images.map(image => {
+          if (image.status === 'rejected') {
+            return null;
+          }
+
+          const imageClass = image.status === 'pending' ? 'opacity-50' : '';
+
+          return (
+            <div key={image.id} className={`relative group border rounded overflow-hidden ${imageClass}`}>
+              <img src={image.url} alt={image.title} className="w-full h-48 object-cover" />
+              {image.status === 'pending' && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
+                  Pending Approval
+                </div>
+              )}
+              <div className="absolute top-0 right-0 m-2">
+                <Button className="mr-2" onClick={() => { setEditingImage(image); setIsEditModalVisible(true); }}>Edit</Button>
+                <Button danger onClick={() => handleDeleteImage(image.id)}>Delete</Button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <Modal
@@ -120,7 +145,7 @@ export default function ImageManager({ userId }: ImageManagerProps) {
         onCancel={() => setIsEditModalVisible(false)}
         footer={null}
       >
-        <Form initialValues={editingImage} onFinish={handleEditImage}>
+        <Form initialValues={editingImage || {}} onFinish={handleEditImage}>
           <Form.Item name="title" label="Title">
             <Input />
           </Form.Item>
@@ -143,6 +168,7 @@ export default function ImageManager({ userId }: ImageManagerProps) {
           albums={albums}
           currentUserId={userId.toString()}
           setAlbums={setAlbums}
+          onUploadSuccess={handleUploadSuccess} // Truyền hàm callback vào UploadComponent
         />
       </Modal>
     </div>

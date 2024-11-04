@@ -1,10 +1,8 @@
-import React from 'react';
-import ApprovePage from '../components/Auth/ApprovePage';
+import React from "react";
+import ApprovePage from "../components/Auth/ApprovePage";
 
 const Page = () => {
-    return (
-        <ApprovePage />
-    );
-}
+  return <ApprovePage />;
+};
 
 export default Page;

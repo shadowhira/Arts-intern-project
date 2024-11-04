@@ -10,12 +10,14 @@ interface UploadComponentProps {
   albums: { id: string; title: string }[];
   currentUserId: string;
   setAlbums: (albums: { id: string; title: string }[]) => void;
+  onUploadSuccess: (image: any) => void; // Thêm hàm callback
 }
 
 export default function UploadComponent({
   albums,
   currentUserId,
   setAlbums,
+  onUploadSuccess, // Nhận hàm callback
 }: UploadComponentProps) {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [selectedAlbum, setSelectedAlbum] = useState("");
@@ -78,6 +80,8 @@ export default function UploadComponent({
             throw new Error("Failed to upload");
           }
 
+          const newImage = await response.json();
+          onUploadSuccess(newImage); // Gọi hàm callback sau khi upload thành công
           message.success("Upload successful!");
         } catch (error) {
           console.error("Upload failed:", error);

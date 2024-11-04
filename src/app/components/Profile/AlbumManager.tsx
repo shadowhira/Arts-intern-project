@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Table, Button, message, Modal, Form, Input } from "antd";
 import { getAccessToken } from '../../../lib/auth';
+import { PlusOutlined } from "@ant-design/icons";
 
 interface AlbumManagerProps {
   userId: number;
@@ -25,6 +26,13 @@ export default function AlbumManager({ userId }: AlbumManagerProps) {
   }, [userId]);
 
   const handleAddAlbum = async (values: any) => {
+    // Kiểm tra nếu tên album đã tồn tại
+    const albumExists = albums.some(album => album.title === values.title);
+    if (albumExists) {
+      message.error("Tên album đã tồn tại.");
+      return;
+    }
+
     const accessToken = await getAccessToken();
     const response = await fetch("http://127.0.0.1:8000/albums", {
       method: "POST",
@@ -110,7 +118,7 @@ export default function AlbumManager({ userId }: AlbumManagerProps) {
   return (
     <div>
       <h3>Quản lý album</h3>
-      <Button type="primary" onClick={() => { setEditingAlbum(null); setIsModalVisible(true); }}>
+      <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingAlbum(null); setIsModalVisible(true); }}>
         Thêm album
       </Button>
       <Table dataSource={albums} columns={columns} rowKey="id" />
