@@ -55,23 +55,24 @@ export class AlbumController {
           },
         },
       },
-    }) requestData: {
+    })
+    requestData: {
       title: string;
       userId: string;
     },
   ): Promise<Album> {
     const {title, userId} = requestData;
-  
+
     try {
       // Tạo album mới
       const newAlbum = await this.albumRepository.create({title, userId});
-  
+
       // Gửi notification cho những người theo dõi
       await this.notificationService.notifyFollowersCreateNew(
         newAlbum.userId,
         'album',
       );
-  
+
       return newAlbum;
     } catch (error) {
       throw new HttpErrors.InternalServerError(error.message);
@@ -107,8 +108,19 @@ export class AlbumController {
       },
     },
   })
-  async find(@param.filter(Album) filter?: Filter<Album>): Promise<Album[]> {
+  async find(
+    @param.filter(Album) filter?: Filter<Album>,
+    @param.query.string('userId') userId?: string, // Lấy userId từ query string
+  ): Promise<Album[]> {
     try {
+      // Nếu userId có trong query, áp dụng filter với userId
+      if (userId) {
+        filter = filter || {};
+        filter.where = {
+          ...filter.where,
+          userId: userId, // Thêm điều kiện where cho userId
+        };
+      }
       return this.albumRepository.find(filter);
     } catch (error) {
       throw new HttpErrors.InternalServerError(

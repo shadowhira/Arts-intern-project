@@ -165,6 +165,8 @@ export class ImageController {
     @param.filter(Image) filter?: Filter<Image>,
     @param.query.string('title') title?: string,
     @param.query.boolean('publicOnly') publicOnly?: boolean,
+    @param.query.string('userId') userId?: string,
+    @param.query.string('albumId') albumId?: string,
   ): Promise<Image[]> {
     try {
       const whereFilter: any = {};
@@ -175,6 +177,14 @@ export class ImageController {
   
       if (title) {
         whereFilter.title = {like: title, options: 'i'};
+      }
+
+      if (userId) {
+        whereFilter.userId = userId;
+      }
+
+      if (albumId) {
+        whereFilter.albumId = albumId;
       }
   
       const finalFilter = {
