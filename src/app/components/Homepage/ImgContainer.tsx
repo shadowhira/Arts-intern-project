@@ -2,6 +2,9 @@
 
 import Image from "next/image";
 import { StarOutlined, UserOutlined, PictureOutlined } from "@ant-design/icons";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../../redux/store"; 
+import { message } from "antd";
 
 type Props = {
   id: string;
@@ -34,6 +37,9 @@ export default function ImgContainer({
   height,
   user,
 }: Props) {
+  const dispatch = useDispatch();
+  const currentUser = useSelector((state: RootState) => state.user.user);
+
   if (!width || !height) {
     return null;
   }
@@ -41,6 +47,34 @@ export default function ImgContainer({
   const widthHeightRatio = height / width;
   const galleryHeight = Math.ceil(250 * widthHeightRatio);
   const photoSpans = Math.ceil(galleryHeight / 10) + 1;
+
+  const handleFollow = async () => {
+    if (!currentUser) {
+      message.warning("Please log in to follow users.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/follows", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          followerId: currentUser.id,
+          followingId: user.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to follow user.");
+      }
+
+      message.success("Followed user successfully.");
+    } catch (error) {
+      message.error((error as Error).message);
+    }
+  };
 
   return (
     <div
@@ -70,6 +104,12 @@ export default function ImgContainer({
             <UserOutlined />
             <span>{user.username}</span>
           </div>
+          <button
+            onClick={handleFollow}
+            className="bg-blue-500 text-white px-2 py-1 rounded"
+          >
+            Follow
+          </button>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Notification from "./NavBar/Notification";
 import Search from "./NavBar/Search";
@@ -6,8 +7,16 @@ import Theme from "./NavBar/Theme";
 import Upload from "./NavBar/Upload";
 import UserInfo from "./NavBar/UserInfo";
 import Logout from "./NavBar/Logout";
+import LoginPage from "./Auth/LoginPage";
 
 export default function NavBar() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("refreshToken");
+    setIsLoggedIn(!!token);
+  }, []);
+
   return (
     <header className="bg-slate-300 dark:bg-gray-800 sticky top-0 z-10">
       <nav className="flex flex-col gap-4 sm:flex-row sm:justify-between items-center p-4 font-bold max-w-6xl mx-auto text-black dark:text-white">
@@ -21,8 +30,7 @@ export default function NavBar() {
           <Search />
           <Theme />
           <Notification />
-          <Link href="/upload">Upload</Link>
-          <Logout />
+          {isLoggedIn ? <Logout /> : <Link href="/login">Login</Link>}
         </div>
       </nav>
     </header>
