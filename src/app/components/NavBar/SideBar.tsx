@@ -10,6 +10,7 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
+import { Button, Menu, Drawer } from "antd";
 import "tailwindcss/tailwind.css";
 
 export default function SideBar() {
@@ -27,56 +28,51 @@ export default function SideBar() {
 
   return (
     <>
-      <button className="text-xl p-2" onClick={() => setIsOpen(!isOpen)}>
-        <MenuOutlined />
-      </button>
-      {isOpen && (
-        <div className="fixed top-16 left-0 h-full w-64 bg-gray-800 text-white z-20">
-          <div className="flex flex-col items-center mt-10">
-            <button
-              className="flex items-center p-2 hover:bg-gray-700 rounded w-full text-left"
-              onClick={() => handleNavigation("/")}
-            >
-              <HomeOutlined className="text-xl" />
-              <span className="ml-4">Trang chủ</span>
-            </button>
-            <button
-              className="flex items-center p-2 hover:bg-gray-700 rounded w-full text-left"
-              onClick={() => handleNavigation("/profile")}
-            >
-              <UserOutlined className="text-xl" />
-              <span className="ml-4">Trang profile</span>
-            </button>
-            {isAdmin && (
-              <button
-                className="flex items-center p-2 hover:bg-gray-700 rounded w-full text-left"
-                onClick={() => handleNavigation("/admin")}
-              >
-                <SettingOutlined className="text-xl" />
-                <span className="ml-4">Trang admin</span>
-              </button>
-            )}
-            {isAuthor && (
-              <button
-                className="flex items-center p-2 hover:bg-gray-700 rounded w-full text-left"
-                onClick={() => handleNavigation("/author")}
-              >
-                <EditOutlined className="text-xl" />
-                <span className="ml-4">Trang author</span>
-              </button>
-            )}
-            {isAuthor && (
-              <button
-                className="flex items-center p-2 hover:bg-gray-700 rounded w-full text-left"
-                onClick={() => handleNavigation("/approve")}
-              >
-                <CheckCircleOutlined className="text-xl" />
-                <span className="ml-4">Trang phê duyệt</span>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      <Button
+        type="primary"
+        icon={<MenuOutlined />}
+        onClick={() => setIsOpen(!isOpen)}
+      />
+      <Drawer
+        title="Menu"
+        placement="left"
+        onClose={() => setIsOpen(false)}
+        visible={isOpen}
+        bodyStyle={{ padding: 0 }}
+      >
+        <Menu
+          mode="inline"
+          // theme="light"
+          onClick={({ key }) => handleNavigation(key)}
+          items={[
+            {
+              key: "/",
+              icon: <HomeOutlined />,
+              label: "Trang chủ",
+            },
+            {
+              key: "/profile",
+              icon: <UserOutlined />,
+              label: "Trang profile",
+            },
+            isAdmin && {
+              key: "/admin",
+              icon: <SettingOutlined />,
+              label: "Trang admin",
+            },
+            isAuthor && {
+              key: "/author",
+              icon: <EditOutlined />,
+              label: "Trang author",
+            },
+            isAuthor && {
+              key: "/approve",
+              icon: <CheckCircleOutlined />,
+              label: "Trang phê duyệt",
+            },
+          ].filter(Boolean)}
+        />
+      </Drawer>
     </>
   );
 }

@@ -1,15 +1,20 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Notification from "./NavBar/Notification";
 import Search from "./NavBar/Search";
 import SideBar from "./NavBar/SideBar";
 import Theme from "./NavBar/Theme";
-import Upload from "./NavBar/Upload";
-import UserInfo from "./NavBar/UserInfo";
 import Logout from "./NavBar/Logout";
-import LoginPage from "./Auth/LoginPage";
+import { Layout, Typography, Button } from "antd";
 
-export default function NavBar() {
+const { Header } = Layout;
+const { Title } = Typography;
+
+interface NavBarProps {
+  onThemeChange: (newTokens: Partial<{ colorPrimary: string; borderRadius: number; colorBgContainer: string }>) => void;
+}
+
+export default function NavBar({ onThemeChange }: NavBarProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -18,21 +23,27 @@ export default function NavBar() {
   }, []);
 
   return (
-    <header className="bg-slate-300 dark:bg-gray-800 sticky top-0 z-10">
-      <nav className="flex flex-col gap-4 sm:flex-row sm:justify-between items-center p-4 font-bold max-w-6xl mx-auto text-black dark:text-white">
+    <Header className="bg-slate-300 dark:bg-gray-800 sticky top-0 z-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between items-center p-4 font-bold max-w-6xl mx-auto text-black dark:text-white">
         <div className="flex items-center gap-4">
           <SideBar />
-          <h1 className="text-2xl sm:text-3xl text-center whitespace-nowrap">
+          <Title level={2} className="text-2xl sm:text-3xl text-center whitespace-nowrap text-black dark:text-white">
             <Link href="/">Mom's Image Gallery</Link>
-          </h1>
+          </Title>
         </div>
         <div className="flex items-center gap-4">
           <Search />
-          <Theme />
+          <Theme onThemeChange={onThemeChange} />
           <Notification />
-          {isLoggedIn ? <Logout /> : <Link href="/login">Login</Link>}
+          {isLoggedIn ? (
+            <Logout />
+          ) : (
+            <Button type="primary">
+              <Link href="/login">Login</Link>
+            </Button>
+          )}
         </div>
-      </nav>
-    </header>
+      </div>
+    </Header>
   );
 }

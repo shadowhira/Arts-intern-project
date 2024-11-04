@@ -3,10 +3,12 @@
 import ImgContainer from "./ImgContainer";
 import React, { useState, useEffect, useCallback } from "react";
 import Filter from "./Filter";
-import { message, Spin } from "antd";
+import { message, Spin, Typography } from "antd";
 import { getAccessToken, logout } from "../../../lib/auth";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store"; // Đảm bảo bạn đã cấu hình store
+
+const { Paragraph } = Typography;
 
 type Image = {
   id: string;
@@ -143,7 +145,11 @@ export default function Gallery() {
           <Spin />
         </div>
       )}
-      {!hasMore && <p className="text-center my-3">No more images to load.</p>}
+      {!hasMore && (
+        <Paragraph className="text-center my-3">
+          No more images to load.
+        </Paragraph>
+      )}
     </>
   );
 }

@@ -1,5 +1,6 @@
 // components/Filter.tsx
 import React from "react";
+import { Button } from "antd";
 
 type Album = {
   id: string;
@@ -17,20 +18,18 @@ export default function Filter({
   selectedAlbum,
   onAlbumChange,
 }: FilterProps) {
-  const allAlbums = [{ id: "", title: "All" }, ...albums]; 
+  const allAlbums = [{ id: "", title: "All" }, ...albums];
 
   return (
     <div className="flex space-x-4 p-4">
       {allAlbums.map((album) => (
-        <button
+        <Button
           key={album.id}
           onClick={() => onAlbumChange(album.id)}
-          className={`px-4 py-2 text-sm rounded ${
-            selectedAlbum === album.id ? "bg-blue-500 text-white" : "bg-gray-200"
-          }`}
+          type={selectedAlbum === album.id ? "primary" : "default"}
         >
           {album.title}
-        </button>
+        </Button>
       ))}
     </div>
   );

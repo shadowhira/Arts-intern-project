@@ -4,7 +4,7 @@ import Image from "next/image";
 import { StarOutlined, UserOutlined, PictureOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store"; 
-import { message } from "antd";
+import { message, Button } from "antd";
 
 type Props = {
   id: string;
@@ -104,12 +104,13 @@ export default function ImgContainer({
             <UserOutlined />
             <span>{user.username}</span>
           </div>
-          <button
+          <Button
             onClick={handleFollow}
-            className="bg-blue-500 text-white px-2 py-1 rounded"
+            type="primary"
+            className="px-2 py-1 rounded"
           >
             Follow
-          </button>
+          </Button>
         </div>
       </div>
     </div>

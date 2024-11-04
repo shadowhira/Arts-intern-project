@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Upload, Button, Modal, Form, Input, Select, Switch, message } from "antd";
 import { UploadOutlined } from '@ant-design/icons';
 import { getAccessToken } from '../../../lib/auth';
-import UploadComponent from '../NavBar/Upload'; // Import UploadComponent
+import UploadComponent from './Upload'; // Import UploadComponent
 
 interface ImageManagerProps {
   userId: number;

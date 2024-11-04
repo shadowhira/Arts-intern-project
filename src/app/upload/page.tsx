@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { message } from "antd";
 import { getAccessToken, logout } from "../../lib/auth";
-import UploadComponent from "../components/NavBar/Upload";
+import UploadComponent from "../components/Profile/Upload";
 
 export default function UploadPage() {
   const [albums, setAlbums] = useState<{ id: string; title: string }[]>([]);

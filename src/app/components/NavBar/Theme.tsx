@@ -1,33 +1,38 @@
-import React from "react";
-import { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
-import Image from "next/image";
+import React, { useState } from "react";
+import { Button } from "antd";
 import { MoonOutlined, SunOutlined } from "@ant-design/icons";
 
-export default function Theme() {
-  const [mounted, setMounted] = useState(false);
-  const { setTheme, resolvedTheme } = useTheme();
+interface ThemeProps {
+  onThemeChange: (newTokens: { colorPrimary: string; borderRadius?: number; colorBgContainer?: string }) => void;
+}
 
-  useEffect(() => setMounted(true), []);
+export default function Theme({ onThemeChange }: ThemeProps) {
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
-  if (!mounted)
-    return (
-      <Image
-        src="data:image/svg+xml;base64,PHN2ZyBzdHJva2U9IiNGRkZGRkYiIGZpbGw9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMCIgdmlld0JveD0iMCAwIDI0IDI0IiBoZWlnaHQ9IjIwMHB4IiB3aWR0aD0iMjAwcHgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiB4PSIyIiB5PSIyIiBmaWxsPSJub25lIiBzdHJva2Utd2lkdGg9IjIiIHJ4PSIyIj48L3JlY3Q+PC9zdmc+Cg=="
-        width={36}
-        height={36}
-        sizes="36x36"
-        alt="Loading Light/Dark Toggle"
-        priority={false}
-        title="Loading Light/Dark Toggle"
-      />
-    );
+  const handleClick = () => {
+    setIsDarkMode(!isDarkMode);
+    const newColor = isDarkMode ? "#00b96b" : "#ff4d4f"; 
+    const newTokens = {
+      colorPrimary: newColor,
+      borderRadius: isDarkMode ? 8 : 2, 
+      colorBgContainer: isDarkMode ? "#39eacf" : "#f6ffed", 
+    };
+    onThemeChange(newTokens);
+  };
 
-  if (resolvedTheme === "dark") {
-    return <SunOutlined onClick={() => setTheme("light")} />;
-  }
-
-  if (resolvedTheme === "light") {
-    return <MoonOutlined onClick={() => setTheme("dark")} />;
-  }
+  return (
+    <Button
+      shape="circle"
+      icon={isDarkMode ? <SunOutlined /> : <MoonOutlined />}
+      onClick={handleClick}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "36px",
+        height: "36px",
+        backgroundColor: isDarkMode ? "#4a5568" : "#e2e8f0",
+      }}
+    />
+  );
 }

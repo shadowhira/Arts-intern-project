@@ -5,9 +5,9 @@ import localFont from "next/font/local";
 import "./globals.css";
 import NavBar from "./components/NavBar";
 import { usePathname } from "next/navigation";
-import { Providers } from "./providers";
-import {store} from "../redux/store";
 import { Provider } from "react-redux";
+import { ConfigProvider } from "antd";
+import { store } from "../redux/store";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,33 +24,41 @@ const hiddenNavBarPaths = [
   "/login",
   "/register",
   "/forgot-password",
-  // "/admin",
-  // "/author",
 ];
 
-export default function Layout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [hideNavBar, setHideNavBar] = useState(false);
+  const [themeTokens, setThemeTokens] = useState({
+    colorPrimary: "#00b96b",
+    borderRadius: 2,
+    colorBgContainer: "#f6ffed",
+  });
 
   useEffect(() => {
     setHideNavBar(hiddenNavBarPaths.includes(pathname));
   }, [pathname]);
 
+  const handleThemeChange = (newTokens: Partial<typeof themeTokens>) => {
+    setThemeTokens(prevTokens => ({
+      ...prevTokens,
+      ...newTokens,
+    }));
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Provider store={store}>
-          <Providers>
-            {!hideNavBar && <NavBar />}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ConfigProvider
+          theme={{
+            token: themeTokens,
+          }}
+        >
+          <Provider store={store}>
+            {!hideNavBar && <NavBar onThemeChange={handleThemeChange} />}
             <main className="max-w-6xl mx-auto">{children}</main>
-          </Providers>
-        </Provider>
+          </Provider>
+        </ConfigProvider>
       </body>
     </html>
   );
