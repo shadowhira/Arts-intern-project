@@ -6,7 +6,7 @@ import "./globals.css";
 import NavBar from "./components/NavBar";
 import { usePathname } from "next/navigation";
 import { Providers } from "./providers";
-import { store } from "../redux/store";
+import {store} from "../redux/store";
 import { Provider } from "react-redux";
 
 const geistSans = localFont({

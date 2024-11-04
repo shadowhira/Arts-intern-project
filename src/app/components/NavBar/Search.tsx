@@ -1,17 +1,22 @@
+// components/Search.tsx
 "use client";
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-
-import React from "react";
+import { useDispatch } from "react-redux";
+import { setSearchTerm } from "../../../redux/searchSlice";
 
 export default function Search() {
   const [search, setSearch] = useState("");
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (search) router.push(`/results/${search}`);
+    if (search) {
+      dispatch(setSearchTerm(search));
+      router.push("/"); // Điều hướng về trang Gallery
+    }
     setSearch("");
   };
 
