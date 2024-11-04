@@ -2,7 +2,7 @@ import {Entity, model, property, belongsTo} from '@loopback/repository';
 import {Album} from './album.model';
 import {User} from './user.model';
 
-@model({settings: {strict: false}})
+@model({settings: {strict: false}}) 
 export class Image extends Entity {
   @property({
     type: 'string',
@@ -39,13 +39,22 @@ export class Image extends Entity {
     type: 'number',
     required: true,
   })
-  width: number; // Thêm thuộc tính width
+  width: number;
 
   @property({
     type: 'number',
     required: true,
   })
-  height: number; // Thêm thuộc tính height
+  height: number;
+
+  @property({
+    type: 'string',
+    required: true,
+    jsonSchema: {
+      enum: ['pending', 'approved', 'rejected'],
+    },
+  })
+  status: string; // Thêm thuộc tính status
 
   @belongsTo(() => Album)
   albumId: string;
@@ -53,10 +62,6 @@ export class Image extends Entity {
   @belongsTo(() => User)
   userId: string;
 
-  // Define well-known properties here
-
-  // Indexer property to allow additional data
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [prop: string]: any;
 
   constructor(data?: Partial<Image>) {

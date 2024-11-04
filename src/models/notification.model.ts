@@ -32,7 +32,7 @@ export class Notification extends Entity {
     type: 'string',
     required: true,
   })
-  actionType: 'album' | 'image' | 'follow';
+  actionType: 'album' | 'image' | 'follow' | 'image_rejected' | 'image_approved';
 
   @property({
     type: 'boolean',

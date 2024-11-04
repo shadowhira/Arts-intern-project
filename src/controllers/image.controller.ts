@@ -36,8 +36,6 @@ export class ImageController {
     public notificationService: NotificationService,
   ) {}
 
-  // @authenticate('jwt')
-  // @intercept('user')
   @post('/images')
   @response(200, {
     description: 'Image model instance',
@@ -96,12 +94,10 @@ export class ImageController {
     } = requestData;
 
     try {
-      // Convert buffer to stream
       const bufferStream = new Readable();
       bufferStream.push(Buffer.from(file, 'base64'));
       bufferStream.push(null);
 
-      // Upload image to Cloudinary
       const result = await new Promise<any>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream((error, result) => {
           if (error) reject(error);
@@ -110,7 +106,6 @@ export class ImageController {
         bufferStream.pipe(stream);
       });
 
-      // Create image object with URL from Cloudinary
       const newImage = await this.imageRepository.create({
         title,
         url: result.secure_url,
@@ -120,9 +115,9 @@ export class ImageController {
         public: isPublic, 
         width,
         height, 
+        status: 'pending', // Đặt trạng thái ban đầu là pending
       });
 
-      // Send notification to followers
       await this.notificationService.notifyFollowersCreateNew(
         newImage.userId,
         'image',
@@ -133,6 +128,51 @@ export class ImageController {
       throw new HttpErrors.BadRequest(
         'Failed to create image: ' + error.message,
       );
+    }
+  }
+
+  @authenticate('jwt')
+  @intercept('author')
+  @patch('/images/{id}/approve')
+  @response(204, {
+    description: 'Image approved successfully',
+  })
+  async approveImage(
+    @param.path.string('id') id: string,
+  ): Promise<void> {
+    try {
+      // check status
+      const image = await this.imageRepository.findById(id);
+      if (image.status !== 'pending') {
+        throw new HttpErrors.BadRequest('Ảnh đã được phê duyệt hoặc từ chối.');
+      }
+      await this.imageRepository.updateById(id, {status: 'approved'});
+      await this.notificationService.notifyImageApproved(image.userId, id);
+      return Promise.resolve();
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Ảnh đã được phê duyệt hoặc từ chối.');
+    }
+  }
+
+  @authenticate('jwt')
+  @intercept('author')
+  @patch('/images/{id}/reject')
+  @response(204, {
+    description: 'Image rejected successfully',
+  })
+  async rejectImage(
+    @param.path.string('id') id: string,
+  ): Promise<void> {
+    try {
+      const image = await this.imageRepository.findById(id);
+      if (image.status !== 'pending') {
+        throw new HttpErrors.BadRequest('Ảnh đã được phê duyệt hoặc từ chối.');
+      }
+      await this.imageRepository.updateById(id, {status: 'rejected'});
+      await this.notificationService.notifyImageRejected(image.userId, id);
+      return Promise.resolve();
+    } catch (error) {
+      throw new HttpErrors.BadRequest('Ảnh đã được phê duyệt hoặc từ chối.');
     }
   }
 
@@ -167,6 +207,7 @@ export class ImageController {
     @param.query.boolean('publicOnly') publicOnly?: boolean,
     @param.query.string('userId') userId?: string,
     @param.query.string('albumId') albumId?: string,
+    @param.query.string('status') status?: string,
   ): Promise<Image[]> {
     try {
       const whereFilter: any = {};
@@ -186,11 +227,15 @@ export class ImageController {
       if (albumId) {
         whereFilter.albumId = albumId;
       }
+
+      if (status) {
+        whereFilter.status = status;
+      }
   
       const finalFilter = {
         ...filter,
         where: {...whereFilter, ...(filter?.where || {})},
-        include: [{relation: 'user'}], 
+        include: [{relation: 'user'}, {relation: 'album'}],
       };
   
       return this.imageRepository.find(finalFilter);

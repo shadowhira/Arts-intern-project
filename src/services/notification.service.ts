@@ -3,6 +3,7 @@ import {
   NotificationRepository,
   FollowRepository,
   UserRepository,
+  ImageRepository,
 } from '../repositories';
 
 export class NotificationService {
@@ -11,6 +12,7 @@ export class NotificationService {
     @repository(NotificationRepository)
     private notificationRepo: NotificationRepository,
     @repository(FollowRepository) private followRepository: FollowRepository,
+    @repository(ImageRepository) private imageRepository: ImageRepository,
   ) {}
 
   async notifyFollowersCreateNew(
@@ -48,6 +50,36 @@ export class NotificationService {
       receiverId: followingUserId,
       message: `User ${user.username} đã theo dõi bạn.`,
       actionType: 'follow' as 'follow',
+      seen: false,
+    };
+
+    await this.notificationRepo.create(notification);
+  }
+
+  async notifyImageApproved(userId: string, imageId: string): Promise<void> {
+    const user = await this.userRepository.findById(userId);
+    const image = await this.imageRepository.findById(imageId);
+
+    const notification = {
+      senderId: 'system',
+      receiverId: userId,
+      message: `Hình ảnh ${image.title} đã được phê duyệt.`,
+      actionType: 'image_approved' as 'image_approved',
+      seen: false,
+    };
+
+    await this.notificationRepo.create(notification);
+  }
+
+  async notifyImageRejected(userId: string, imageId: string): Promise<void> {
+    const user = await this.userRepository.findById(userId);
+    const image = await this.imageRepository.findById(imageId);
+
+    const notification = {
+      senderId: 'system',
+      receiverId: userId,
+      message: `Hình ảnh ${image.title} đã bị từ chối.`,
+      actionType: 'image_rejected' as 'image_rejected',
       seen: false,
     };
 
